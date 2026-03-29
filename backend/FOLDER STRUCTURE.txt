@@ -1,0 +1,9 @@
+/src
+  ├── config/         # Database connections, Environment variables
+  ├── controllers/    # Tagatanggap ng Request, Tagabalik ng Response
+  ├── services/       # "Dito ang Utak" - Lahat ng calculations (Payroll, Taxes)
+  ├── repositories/   # Direct Database access (Prisma calls)
+  ├── middlewares/    # Auth, Error Handling, Logging
+  ├── routes/         # URL definition (v1/employees, etc.)
+  ├── utils/          # Reusable helpers (Date formatting, Math)
+  └── server.ts       # Entry point

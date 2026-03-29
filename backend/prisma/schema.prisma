@@ -1,0 +1,152 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Employee {
+  id              Int             @id @default(autoincrement())
+  employeeId      String          @unique // Halimbawa: HRIS-2024-001
+  firstName       String
+  lastName        String
+  email           String          @unique
+  password        String
+  role            Role            @default(EMPLOYEE) // <--- System Permission
+  departmentId    Int?            // <--- Pag may ID it means One-To-One Relationship
+  department      Department?     @relation(fields: [departmentId], references: [id])
+  positionId      Int?            // <--- Pag may ID it means One-To-One Relationship
+  position        Position?       @relation(fields: [positionId], references: [id])
+  attendances     Attendance[]    // <--- Pag WALANG ID it means One-To-Many Relationship
+  scheduleId      Int?            // <--- Pag may ID it means One-To-One Relationship
+  schedule        Schedule?       @relation(fields: [scheduleId], references: [id])
+  leaveCredits    Int             @default(15)
+  leaves          LeaveRequest[]  // <--- Pag WALANG ID it means One-To-Many Relationship
+  basicSalary     Float           @default(0.0) // Monthly Basic Salary
+  payrolls        Payroll[]       // <--- Pag WALANG ID it means One-To-Many Relationship
+  status          EmployeeStatus  @default(PROBATIONARY)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Department {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Position {
+  id          Int        @id @default(autoincrement())
+  title       String     @unique
+  description String?
+  employees   Employee[]
+  createdAt   DateTime   @default(now())
+}
+
+model Attendance {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @default(now()) // Para sa YYYY-MM-DD
+  timeIn       DateTime @default(now())
+  timeOut      DateTime?
+  status       AttendanceStatus @default(PRESENT)
+  remarks      String?  // Halimbawa: "Late due to traffic"
+  
+  // Relations
+  employeeId   Int
+  employee     Employee @relation(fields: [employeeId], references: [id])
+
+  // Enterprise Rule: Isang attendance record lang per employee per day
+  @@unique([employeeId, date]) 
+}
+
+model Schedule {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique // Halimbawa: "Morning Shift", "Night Shift"
+  shiftStart  String     // Format: "08:00" (HH:mm)
+  shiftEnd    String     // Format: "17:00"
+  gracePeriod Int        @default(15) // Minutes bago maging "LATE"
+  employees   Employee[]
+}
+
+model LeaveRequest {
+  id           Int         @id @default(autoincrement())
+  startDate    DateTime
+  endDate      DateTime
+  type         LeaveType
+  reason       String      @db.Text
+  status       LeaveStatus @default(PENDING)
+  adminRemarks String?     // Bakit na-reject? O anong bilin ng Admin?
+  
+  // Relations
+  employeeId   Int
+  employee     Employee    @relation(fields: [employeeId], references: [id])
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Payroll {
+  id              Int      @id @default(autoincrement())
+  employeeId      Int
+  employee        Employee @relation(fields: [employeeId], references: [id])
+  
+  periodStart     DateTime
+  periodEnd       DateTime
+  
+  // Earnings
+  basicPay        Float    // (Monthly Basic / 2) for semi-monthly
+  overtimePay     Float    @default(0.0)
+  
+  // Deductions
+  absentDeduction Float    @default(0.0)
+  lateDeduction   Float    @default(0.0)
+  sss             Float    @default(0.0)
+  philhealth      Float    @default(0.0)
+  pagibig         Float    @default(0.0)
+  tax             Float    @default(0.0)
+  
+  netPay          Float
+  status          String   @default("PENDING") // PENDING, PAID, VOID
+  createdAt       DateTime @default(now())
+}
+
+
+// ENUMS HERE...
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  ON_LEAVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum EmployeeStatus {
+  REGULAR
+  PROBATIONARY
+  CONTRACTUAL
+  TERMINATED
+}
+
+enum Role {
+  ADMIN      // Pwedeng mag-CRUD ng lahat
+  EMPLOYEE   // Pwedeng makita lang ang sariling data
+}
+
+enum LeaveType {
+  SICK       // Sakit
+  VACATION   // Bakasyon
+  EMERGENCY  // Emergency
+  MATERNITY  // Para sa mga nanay
+  PATERNITY  // Para sa mga tatay
+}
+
