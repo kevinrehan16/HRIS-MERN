@@ -41,6 +41,18 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     { expiresIn: '1d' }
   );
 
-  sendResponse(res, 200, { id: employee.id, email: employee.email, role: employee.role, token }, 
-    "Login Successful!");
+  // --- ETO ANG BAGO: HTTP-ONLY COOKIE ---
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+    sameSite: 'lax', // Proteksyon sa CSRF
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  });
+
+  // Huwag nang ibalik ang token sa JSON body para sa security
+  sendResponse(res, 200, { 
+    id: employee.id, 
+    email: employee.email, 
+    role: employee.role 
+  }, "Login Successful!");
 });

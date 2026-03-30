@@ -13,31 +13,44 @@ export const restrictTo = (...roles: string[]) => {
 };
 
 export interface AuthRequest extends Request {
-  user?: { id: number; email: string };
+  user?: { id: number; email: string; role: string };
 }
 
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  let token;
+  let token: string | undefined;
 
-  // 1. Check kung may token sa Headers (Authorization: Bearer <token>)
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      token = req.headers.authorization.split(' ')[1]; // Kunin yung string pagkatapos ng "Bearer"
-
-      // 2. I-verify ang token gamit ang ating SECRET
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretkey') as { id: number; 
-        email: string };
-
-      // 3. I-attach ang user data sa request para magamit sa susunod na function
-      req.user = decoded;
-
-      next(); // Tuloy ang ligaya sa controller!
-    } catch (error) {
-      return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
-    }
+  // 1. Priority: Tumingin sa HttpOnly Cookies
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  } 
+  // 2. Fallback: Tumingin sa Headers (Para sa Insomnia/Postman testing)
+  else if (req.headers.authorization?.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
   }
 
+  // 3. Check kung may nakuha ba talagang token
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Not authorized, no token' });
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Not authorized, no token found' 
+    });
+  }
+
+  try {
+    // 4. I-verify ang token
+    const decoded = jwt.verify(
+      token, 
+      process.env.JWT_SECRET || 'supersecretkey'
+    ) as { id: number; email: string; role: string };
+
+    // 5. I-attach ang decoded user data sa request object
+    req.user = decoded;
+
+    next(); // Proceed sa next function/controller
+  } catch (error) {
+    return res.status(401).json({ 
+      success: false, 
+      message: 'Not authorized, token expired or invalid' 
+    });
   }
 };

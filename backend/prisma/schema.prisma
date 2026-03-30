@@ -110,12 +110,19 @@ model Payroll {
   tax             Float    @default(0.0)
   
   netPay          Float
-  status          String   @default("PENDING") // PENDING, PAID, VOID
+  status          PayrollStatus  @default(PENDING) // PENDING, PAID, VOID
   createdAt       DateTime @default(now())
 }
 
 
 // ENUMS HERE...
+enum PayrollStatus {
+  PENDING
+  APPROVED
+  PAID
+  VOID
+}
+
 enum AttendanceStatus {
   PRESENT
   LATE

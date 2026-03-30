@@ -1,6 +1,7 @@
 import express, { type Application } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 
 // import MIDDLEWARES
 import { errorMiddleware } from './middlewares/error.middleware.js';
@@ -20,8 +21,12 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
 // 1. Standard Enterprise Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Dapat specific URL ng frontend mo
+  credentials: true,               // KRITIKAL: Ito ang nagpapahintulot sa Cookies
+}));
 app.use(express.json()); // Para makabasa ng JSON bodies
+app.use(cookieParser());
 
 // 2. Health Check (Optional pero recommended para sa Uptime monitoring)
 app.get('/health', (req, res) => {
