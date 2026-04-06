@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/authStore';
+// import { useAuthStore } from '../store/authStore';
 import { API_BASE_URL } from '../config';
 
 const axiosClient = axios.create({
@@ -11,13 +11,8 @@ const axiosClient = axios.create({
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Kung ang server ay nag-return ng 401 (Expired or No Cookie)
-    if (error.response?.status === 401) {
-      // Force logout sa client side
-      useAuthStore.getState().logout();
-      // Opsyonal: I-redirect sa login kung wala sa browser context
-      window.location.href = '/login';
-    }
+    // HUWAG maglagay ng window.location.reload() o redirect dito!
+    // Hayaan ang App.tsx catch block ang mag-handle.
     return Promise.reject(error);
   }
 );

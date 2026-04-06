@@ -8,7 +8,7 @@ import { sendResponse } from '../utils/sendResponse.js';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
   // DITO: Wala na tayong manual 'if (!email)' etc. kasi hinarang na ni Zod sa Route level.
-  const { employeeId, firstName, lastName, email, password } = req.body;
+  const { employeeId, firstName, lastName, email, password, departmentId, positionId } = req.body;
 
   // 1. Business Logic Check (Ito na lang ang matitira)
   const userExists = await prisma.employee.findUnique({ where: { email } });
@@ -19,11 +19,11 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   // 2. Process
   const hashedPassword = await hashPassword(password);
   const newEmployee = await prisma.employee.create({
-    data: { employeeId, firstName, lastName, email, password: hashedPassword }
+    data: { employeeId, firstName, lastName, email, password: hashedPassword, departmentId, positionId }
   });
 
   // 3. Success Response
-  sendResponse(res, 201, { id: newEmployee.id, email: newEmployee.email }, "Employee Registered!");
+  sendResponse(res, 201, { id: newEmployee.id, email: newEmployee.email, departmentId, positionId }, "Employee Registered!");
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {
@@ -55,4 +55,19 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     email: employee.email, 
     role: employee.role 
   }, "Login Successful!");
+});
+
+export const logout = catchAsync(async (req: Request, res: Response) => {
+  // Buburahin natin ang cookie sa pamamagitan ng pag-set ng expiry date sa nakaraan (Past Date)
+  res.cookie('token', '', {
+    httpOnly: true,
+    expires: new Date(0), // January 1, 1970 (Burado agad!)
+    sameSite: 'lax',      // Siguraduhin na match ito sa login settings mo
+    secure: process.env.NODE_ENV === 'production',
+  });
+
+  res.status(200).json({ 
+    success: true, 
+    message: "Logged out successfully" 
+  });
 });

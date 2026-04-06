@@ -3,7 +3,7 @@ import { prisma } from '../config/db.js';
 import { protect, restrictTo } from '../middlewares/auth.middleware.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { catchAsync } from '../utils/catchAsync.js';
-import { getAllEmployees, updateEmployeeProfile } from '../controllers/employee.controller.js';
+import { getAllEmployees, updateEmployeeProfile, deleteEmployee } from '../controllers/employee.controller.js';
 
 const router = Router();
 router.use(protect);
@@ -30,5 +30,6 @@ router.get('/profile', protect, catchAsync(async (req: any, res) => {
 
 router.get('/', restrictTo('ADMIN'), getAllEmployees);
 router.patch('/:id', restrictTo('ADMIN'), updateEmployeeProfile);
+router.delete('/:id', restrictTo('ADMIN'), deleteEmployee);
 
 export default router;

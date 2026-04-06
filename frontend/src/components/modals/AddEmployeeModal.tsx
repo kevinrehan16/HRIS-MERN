@@ -1,11 +1,19 @@
 import { X, User, Briefcase, CreditCard, MapPin, Loader2, AlertCircle, Save } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+
+import { notificationService } from '../../utils/notifications';
+
+import { useLookups } from '../../hooks/useLookups';
 import { useEmployees } from '../../hooks/useEmployees';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  createMutation: any;
+  updateMutation: any;
+  onSuccessAction: () => void; // Idagdag itong prop
+  initialData?: any;
 }
 
 // Interface para sa fields na tinatanggap ng backend mo ngayon
@@ -15,32 +23,70 @@ interface EmployeeFormInput {
   lastName: string;
   email: string;
   password: string;
+  departmentId: string;
+  positionId: string;
 }
 
-const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) => {
+const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, createMutation, updateMutation, onSuccessAction, initialData }) => {
   const [activeTab, setActiveTab] = useState('personal');
-  const { createEmployee } = useEmployees();
+  // const { createEmployee } = useEmployees();
+  const { departments, positions, isLoading: lookupsLoading } = useLookups();
 
   // REACT HOOK FORM
-  const { 
-    register, 
-    handleSubmit, 
+  const {
+    register,
+    handleSubmit,
     reset,
-    formState: { errors } 
+    formState: { errors }
   } = useForm<EmployeeFormInput>();
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        // Kapag may initialData, i-reset ang form gamit ang values nito
+        reset({
+          employeeId: initialData.employeeId,
+          firstName: initialData.firstName,
+          lastName: initialData.lastName,
+          email: initialData.email,
+          // password: "", // Kadalasan, hindi ina-autofill ang password for security
+          departmentId: initialData.departmentId,
+          positionId: initialData.positionId,
+        });
+      } else {
+        // Kapag "Add New", siguraduhing malinis ang form
+        reset({
+          employeeId: "",
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          departmentId: "",
+          positionId: "",
+        });
+      }
+    }
+  }, [isOpen, initialData, reset]);
 
   if (!isOpen) return null;
 
   // ON SUBMIT HANDLER
-  const onSubmit = (data: EmployeeFormInput) => {
-    createEmployee.mutate(data, {
+  const onSubmit = (data: any) => {
+    const activeMutation = initialData ? updateMutation : createMutation;
+    const payload = initialData ? { ...data, id: initialData.id } : data;
+
+    // console.log(createMutation.isPending);
+    activeMutation.mutate(payload, {
       onSuccess: () => {
-        reset();
+        notificationService.toast(initialData ? 'Updated successfully!' : 'Added successfully!');
+        onSuccessAction();
         onClose();
-        setActiveTab('personal'); // Reset tab to first one
+        reset();
+        
+        // console.log("Employee added successfully!");
       },
       onError: (err: any) => {
-        alert(err.response?.data?.message || "Error saving employee");
+        console.error("Failed to save:", err);
       }
     });
   };
@@ -59,8 +105,8 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
         {/* HEADER */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div>
-            <h3 className="text-xl font-bold text-slate-800">Add New Employee</h3>
-            <p className="text-sm text-slate-500 font-medium">Register a new member to the system.</p>
+            <h3 className="text-xl font-bold text-slate-800">{initialData ? 'Edit Employee' : 'Add New Employee'}</h3>
+            <p className="text-sm text-slate-500 font-medium">{initialData ? 'Update the details of the selected employee.' : 'Register a new member to the system.'}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
             <X size={20} className="text-slate-500" />
@@ -88,6 +134,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
           </div>
 
           {/* RIGHT SIDE (CONTENT) */}
+          {/* PERSONAL INFORMATION TAB */}
           <div className="flex-1 overflow-y-auto p-8">
             {activeTab === 'personal' && (
               <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
@@ -162,7 +209,46 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
               </div>
             )}
             
-            {activeTab === 'employment' && <div className="p-4 text-slate-400 italic">Employment fields coming soon...</div>}
+            {/* EMPLOYMENT INFORMATION TAB */}
+            {activeTab === 'employment' && (
+              <div className="space-y-6 animate-in slide-in-from-right-4">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-lg font-bold text-slate-800">Employment Details</h4>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 2 of 4</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Department Dropdown */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Department</label>
+                    <select 
+                      {...register("departmentId", { required: "Department is required" })}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept: any) => (
+                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Position Dropdown */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Position</label>
+                    <select 
+                      {...register("positionId", { required: "Position is required" })}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Position</option>
+                      {positions.map((pos: any) => (
+                        <option key={pos.id} value={pos.id}>{pos.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'address' && <div className="p-4 text-slate-400 italic">Address fields coming soon...</div>}
             {activeTab === 'banking' && <div className="p-4 text-slate-400 italic">Banking fields coming soon...</div>}
           </div>
@@ -179,13 +265,13 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose }) 
           </button>
           <button 
             onClick={handleSubmit(onSubmit)}
-            disabled={createEmployee.isPending}
+            disabled={createMutation.isPending || updateMutation.isPending}
             className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center gap-1"
           >
-            {createEmployee.isPending ? (
+            {createMutation.isPending || updateMutation.isPending ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Saving...
+                Saving Employee...
               </>
             ) : (
               <><Save size={18} />Save Employee</>

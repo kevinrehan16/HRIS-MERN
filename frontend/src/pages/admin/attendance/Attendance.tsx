@@ -1,13 +1,13 @@
-import { LayoutDashboard, Calendar } from 'lucide-react';
+import { ClipboardClock, Calendar } from 'lucide-react';
 import PageHeader from '../../../components/common/PageHeader';
 
-const Dashboard = () => {
+const Attendance = () => {
   return (
     <div className="bg-[#f2f5f9]">
       <PageHeader 
-        title="Dashboard" 
-        subtitle="Dashboard overview and content summary"
-        titleIcon={<LayoutDashboard size={35} className="text-white" />}
+        title="Attendance" 
+        subtitle="Attendance overview and content summary"
+        titleIcon={<ClipboardClock size={35} className="text-white" />}
       >
         <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-4 py-2 text-white">
           <Calendar size={18} />
@@ -41,4 +41,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Attendance;

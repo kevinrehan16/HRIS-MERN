@@ -1,6 +1,11 @@
 /**
  * Kunin ang initials ng employee (e.g., Kevin Macandog -> KM)
  */
+export const formatID = (id: number | string, prefix: string = "ID", padLength: number = 6): string => {
+  const numericId = id.toString();
+  return `${prefix}-${numericId.padStart(padLength, '0')}`;
+};
+
 export const getInitials = (firstName?: string, lastName?: string): string => {
   if (!firstName && !lastName) return '??';
   const f = firstName?.charAt(0) || '';

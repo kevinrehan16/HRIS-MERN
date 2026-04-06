@@ -1,24 +1,32 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarDays, ChevronDown, CircleDot, Circle } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronDown } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const location = useLocation();
   const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
 
   useEffect(() => {
-    if (location.pathname.includes('/admin/employees')) {
-      setOpenSubMenu('employees');
-    } else {
+    const path = location.pathname;
+    // Kung ang URL ay departments o positions, panatilihing 'referentials' ang openSubMenu
+    if (path.includes('/admin/departments') || path.includes('/admin/positions')) {
+      setOpenSubMenu('referentials');
+    } else if (!isCollapsed) {
+      // Optional: I-close ang sub-menu kung lumipat sa ibang main tabs gaya ng Dashboard
       setOpenSubMenu(null);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isCollapsed]);
 
   const toggleSubMenu = (name: string) => {
     if (!isCollapsed) setOpenSubMenu(openSubMenu === name ? null : name);
   };
 
-  const isParentActive = (path: string) => location.pathname.includes(path);
+  const isParentActive = (pathOrPaths: string | string[]) => {
+    if (Array.isArray(pathOrPaths)) {
+      return pathOrPaths.some(path => location.pathname.includes(path));
+    }
+    return location.pathname.includes(pathOrPaths);
+  };
   const isExactActive = (path: string) => location.pathname === path;
 
   // REUSABLE FLOATING POPUP
@@ -150,6 +158,18 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
           )}
         </div> */}
 
+        {/* ATTENDANCE */}
+        <div className="relative group/item">
+          <Link 
+            to="/admin/attendance" 
+            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isParentActive('/admin/attendance') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+          >
+            <ClipboardClock size={22} className="flex-shrink-0" />
+            {!isCollapsed && <span className="ml-3 truncate font-semibold">Attendance</span>}
+          </Link>
+          {isCollapsed && <FloatingPopup title="Attendance" />}
+        </div>
+
         {/* LEAVES */}
         <div className="relative group/item">
           <Link 
@@ -160,6 +180,61 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
             {!isCollapsed && <span className="ml-3 truncate font-semibold">Leaves</span>}
           </Link>
           {isCollapsed && <FloatingPopup title="Leaves" />}
+        </div>
+
+        {/* PAYROLL */}
+        <div className="relative group/item">
+          <Link 
+            to="/admin/payroll" 
+            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isParentActive('/admin/payroll') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+          >
+            <Wallet size={22} className="flex-shrink-0" />
+            {!isCollapsed && <span className="ml-3 truncate font-semibold">Payroll</span>}
+          </Link>
+          {isCollapsed && <FloatingPopup title="Payroll" />}
+        </div>
+
+        {/* REFERENTIALS */}
+        <div className="relative group/item">
+          <div 
+            onClick={() => toggleSubMenu('referentials')}
+            className={`sidebar-link !rounded-none px-6 py-4 flex items-center justify-between cursor-pointer ${isParentActive(['/admin/departments', '/admin/positions']) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+          >
+            <div className="flex items-center">
+              <FolderCog size={22} className="flex-shrink-0" />
+              {!isCollapsed && <span className="ml-3 truncate font-semibold">Referentials</span>}
+            </div>
+            {!isCollapsed && (
+               <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'referentials' ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <ChevronDown size={16} />
+               </div>
+            )}
+          </div>
+
+          {/* EXPANDED SUB-MENU */}
+          {!isCollapsed && openSubMenu === 'referentials' && (
+            <div className="bg-black/10 py-1 animate-in">
+              <Link to="/admin/departments" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/departments') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={16} />
+                <span className="text-[0.95rem]">Departments</span>
+              </Link>
+              <Link to="/admin/positions" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/positions') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={16} />
+                <span className="text-[0.95rem]">Positions</span>
+              </Link>
+            </div>
+          )}
+
+          {/* COLLAPSED POPUP */}
+          {isCollapsed && (
+            <FloatingPopup 
+              title="Referentials" 
+              links={[
+                { label: 'Departments', to: '/admin/departments' },
+                { label: 'Positions', to: '/admin/positions' }
+              ]} 
+            />
+          )}
         </div>
 
       </nav>

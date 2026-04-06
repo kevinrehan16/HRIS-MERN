@@ -36,6 +36,7 @@ model Employee {
 model Department {
   id        Int        @id @default(autoincrement())
   name      String     @unique
+  positions Position[] // Bawat Department ay may listahan ng Positions
   employees Employee[]
 }
 
@@ -43,6 +44,12 @@ model Position {
   id          Int        @id @default(autoincrement())
   title       String     @unique
   description String?
+  // Salary Fields
+  minSalary    Decimal    @default(0.0) @db.Decimal(10, 2)
+  maxSalary    Decimal    @default(0.0) @db.Decimal(10, 2)
+  // Relation to Department
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id])
   employees   Employee[]
   createdAt   DateTime   @default(now())
 }

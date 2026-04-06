@@ -9,13 +9,41 @@ export const createEmployee = async (data: Prisma.EmployeeCreateInput): Promise<
   return await prisma.employee.create({ data });
 };
 
-export const findAllEmployees = async () => {
-  return await prisma.employee.findMany({
-    include: {
-      department: { select: { name: true } },
-      position: { select: { title: true } },
-    },
-  });
+export const findAllEmployees = async (page: number, limit: number, search?: string, deptId?: string) => {
+  const skip = (page - 1) * limit;
+  // Gumawa ng dynamic conditions array
+  const conditions: any[] = [];
+
+  // Search Logic
+  if (search && search.trim() !== "") {
+    conditions.push({
+      OR: [
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { employeeId: { contains: search } },
+      ],
+    });
+  }
+
+  // Department Logic - Wag isama kung empty string o undefined
+  if (deptId && deptId !== "" && deptId !== "undefined") {
+    conditions.push({ departmentId: Number(deptId) });
+  }
+
+  const where = conditions.length > 0 ? { AND: conditions } : {};
+
+  const [employees, total] = await Promise.all([
+    prisma.employee.findMany({
+      where,
+      skip,
+      take: limit,
+      include: { department: true, position: true },
+      orderBy: { id: 'desc' },
+    }),
+    prisma.employee.count({ where }),
+  ]);
+
+  return { employees, total, totalPages: Math.ceil(total / limit) };
 };
 
 // Dagdagan na natin ng update para sa profile
@@ -29,3 +57,7 @@ export const updateEmployee = async (id: number, data: Prisma.EmployeeUpdateInpu
     },
   });
 };
+
+export const deleteEmployee = async (id: number) => {
+  await prisma.employee.delete({ where: { id } });
+}

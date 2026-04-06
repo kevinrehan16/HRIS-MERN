@@ -45,11 +45,12 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Email Field */}
             <div className="mb-3">
-              <label className="form-label small fw-bold text-uppercase text-muted">Email Address</label>
+              <label htmlFor="email" className="form-label small fw-bold text-uppercase text-muted">Email Address</label>
               <div className="input-group">
                 <span className="input-group-text bg-white border-end-0"><Mail size={18} className="text-muted" /></span>
                 <input
                   type="email"
+                  id="email"
                   className={`form-control border-start-0 ${errors.email ? 'is-invalid' : ''}`}
                   placeholder="name@company.com"
                   {...register('email', { required: 'Email is required' })}
@@ -60,11 +61,12 @@ const LoginPage = () => {
 
             {/* Password Field */}
             <div className="mb-4">
-              <label className="form-label small fw-bold text-uppercase text-muted">Password</label>
+              <label htmlFor="password" className="form-label small fw-bold text-uppercase text-muted">Password</label>
               <div className="input-group">
                 <span className="input-group-text bg-white border-end-0"><Lock size={18} className="text-muted" /></span>
                 <input
                   type="password"
+                  id="password"
                   className={`form-control border-start-0 ${errors.password ? 'is-invalid' : ''}`}
                   placeholder="••••••••"
                   {...register('password', { required: 'Password is required' })}

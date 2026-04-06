@@ -7,5 +7,6 @@ export const ROUTES = {
   DEPARTMENTS: `${API_PREFIX}/departments`,
   ATTENDANCE: `${API_PREFIX}/attendance`,
   LEAVE: `${API_PREFIX}/leave`,
-  PAYROLL: `${API_PREFIX}/payroll`
+  PAYROLL: `${API_PREFIX}/payroll`,
+  POSITIONS: `${API_PREFIX}/positions`,
 };

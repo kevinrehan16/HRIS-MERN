@@ -9,6 +9,9 @@ import LoginPage from './pages/LoginPage';
 import AdminLayout from './components/layouts/AdminLayout';
 import Dashboard from './pages/admin/dashboard/Dashboard';
 import Employees from './pages/admin/employees/Employees';
+import Attendance from './pages/admin/attendance/Attendance';
+import Department from './pages/admin/referentials/Department';
+import Position from './pages/admin/referentials/Position';
 
 // Gagawa tayo ng separate file para dito later, 
 // pero for now let's keep it here or move it to /pages
@@ -37,16 +40,24 @@ function App() {
     const checkSession = async () => {
       try {
         const userData = await AuthService.getProfile();
-        setAuth(userData); // Dito tatanim ang user at isAuthenticated = true
-      } catch (err) {
-        logout();
+        if (userData) {
+          setAuth(userData);
+        } else {
+          // Kung walang data pero walang error (rare)
+          setInitialLoading(false);
+        }
+      } catch (err: any) {
+        // DITO: Linisin lang ang Zustand state nang walang redirect
+        // Gumawa tayo ng "silent logout" or just set state to null
+        useAuthStore.setState({ user: null, isAuthenticated: false });
       } finally {
-        setInitialLoading(false);
+        // PINAKA-IMPORTANTENG LINE:
+        setInitialLoading(false); 
       }
     };
 
     checkSession();
-  }, [setAuth, logout, setInitialLoading]);
+  }, []);
 
   if (isInitialLoading) {
     return (
@@ -77,6 +88,9 @@ function App() {
            {/* Siguraduhin na may default child route sa loob ng AdminLayout (Outlet) */}
            <Route path="dashboard" element={<Dashboard />} />
            <Route path="employees" element={<Employees />} />
+           <Route path="attendance" element={<Attendance />} />
+           <Route path="departments" element={<Department />} />
+           <Route path="positions" element={<Position />} />
         </Route>
 
         {/* EMPLOYEE ROUTES */}
