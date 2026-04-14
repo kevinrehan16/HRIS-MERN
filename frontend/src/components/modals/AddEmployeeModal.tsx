@@ -2,6 +2,8 @@ import { X, User, Briefcase, CreditCard, MapPin, Loader2, AlertCircle, Save } fr
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import FaceEnrollment from '../common/FaceEnrollment';
+
 import { notificationService } from '../../utils/notifications';
 
 import { useLookups } from '../../hooks/useLookups';
@@ -204,6 +206,15 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                       placeholder="••••••••" 
                     />
                     {errors.password && <span className="text-[10px] text-red-500 font-bold flex items-center gap-1 mt-1"><AlertCircle size={12}/> {errors.password.message}</span>}
+                  </div>
+
+                  {/* Face Enrollment */}
+                  <div className="col-span-2 space-y-1">
+                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Facial Recognition</label>
+                    <FaceEnrollment 
+                      employeeId={initialData ? initialData.id : "temp-id"} 
+                      onSuccess={() => notificationService.toast("Face data enrolled successfully!")} 
+                    />
                   </div>
                 </div>
               </div>

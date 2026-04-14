@@ -4,11 +4,11 @@ import { timeIn, timeOut, getAttendanceSummary } from '../controllers/attendance
 
 const router = Router();
 
-// Lahat ng attendance routes ay kailangan ng login
-router.use(protect);
-
 router.post('/time-in', timeIn);
 router.patch('/time-out', timeOut);
+
+// Lahat ng attendance routes ay kailangan ng login
+router.use(protect);
 router.get('/summary', restrictTo('ADMIN'), getAttendanceSummary);
 
 export default router;

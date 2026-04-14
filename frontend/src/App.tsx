@@ -13,6 +13,8 @@ import Attendance from './pages/admin/attendance/Attendance';
 import Department from './pages/admin/referentials/Department';
 import Position from './pages/admin/referentials/Position';
 
+import FaceClock from './components/modals/FaceClockModal';
+
 function App() {
   // DAGDAGAN NG 'user' DITO
   const { user, isAuthenticated, setAuth, isInitialLoading, setInitialLoading } = useAuthStore();
@@ -55,6 +57,14 @@ function App() {
         <Route 
           path="/login" 
           element={!isAuthenticated ? <LoginPage /> : (
+            // Importante: Gamitin ang optional chaining ?.
+            user?.role === 'ADMIN' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/portal" />
+          )} 
+        />
+
+        <Route 
+          path="/timeclock" 
+          element={!isAuthenticated ? <FaceClock /> : (
             // Importante: Gamitin ang optional chaining ?.
             user?.role === 'ADMIN' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/portal" />
           )} 

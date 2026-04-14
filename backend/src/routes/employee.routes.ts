@@ -3,11 +3,12 @@ import { prisma } from '../config/db.js';
 import { protect, restrictTo } from '../middlewares/auth.middleware.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { catchAsync } from '../utils/catchAsync.js';
-import { getAllEmployees, updateEmployeeProfile, deleteEmployee } from '../controllers/employee.controller.js';
+import { getAllEmployees, updateEmployeeProfile, deleteEmployee, enrollFace, getEmployeesWithFace } from '../controllers/employee.controller.js';
 
 const router = Router();
-router.use(protect);
+router.get('/with-face', getEmployeesWithFace);
 
+router.use(protect);
 // Ang 'protect' middleware ang bouncer dito
 router.get('/profile', protect, catchAsync(async (req: any, res) => {
   // PUMUNTA SA DATABASE PARA SA PINAKABAGONG DATA
@@ -31,5 +32,6 @@ router.get('/profile', protect, catchAsync(async (req: any, res) => {
 router.get('/', restrictTo('ADMIN'), getAllEmployees);
 router.patch('/:id', restrictTo('ADMIN'), updateEmployeeProfile);
 router.delete('/:id', restrictTo('ADMIN'), deleteEmployee);
+router.put('/enroll-face/:id', restrictTo('ADMIN'), enrollFace);
 
 export default router;

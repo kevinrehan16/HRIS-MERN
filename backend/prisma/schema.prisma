@@ -16,6 +16,7 @@ model Employee {
   lastName        String
   email           String          @unique
   password        String
+  faceDescriptor  String?         @db.LongText // Dito ise-save ang 128-digit numeric array
   role            Role            @default(EMPLOYEE) // <--- System Permission
   departmentId    Int?            // <--- Pag may ID it means One-To-One Relationship
   department      Department?     @relation(fields: [departmentId], references: [id])

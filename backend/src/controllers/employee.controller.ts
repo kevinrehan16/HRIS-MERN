@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express';
 import * as EmployeeRepo from '../repositories/employee.repository.js';
+import { prisma } from '../config/db.js';
+
 import { sendResponse } from '../utils/sendResponse.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { AppError } from '../utils/appError.js';
@@ -59,4 +61,36 @@ export const deleteEmployee = catchAsync(async (req: Request, res: Response) => 
     await EmployeeRepo.deleteEmployee(Number(id));
 
     sendResponse(res, 200, null, "Employee Deleted Successfully!");
+});
+
+// 4. SAVE FACE
+export const enrollFace = catchAsync(async (req: any, res: Response) => {
+  const { id } = req.params;
+  const { faceDescriptor } = req.body;
+
+  if (!faceDescriptor) throw new AppError("Face data is required", 400);
+
+  const updatedEmployee = await prisma.employee.update({
+    where: { id: Number(id) },
+    data: { faceDescriptor },
+  });
+
+  sendResponse(res, 200, updatedEmployee, "Face enrolled successfully!");
+});
+
+// 4. FETCH FACE
+export const getEmployeesWithFace = catchAsync(async (req: Request, res: Response) => {
+  const employees = await prisma.employee.findMany({
+    where: {
+      faceDescriptor: { not: null }
+    },
+    select: {
+      id: true,
+      firstName: true, // Palitan ang 'name' nito
+      lastName: true,  // Idagdag din ito
+      faceDescriptor: true
+    }
+  });
+
+  sendResponse(res, 200, employees, "Employees fetched successfully");
 });
