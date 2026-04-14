@@ -36,8 +36,11 @@ model Employee {
 model Department {
   id        Int        @id @default(autoincrement())
   name      String     @unique
+  description String?
   positions Position[] // Bawat Department ay may listahan ng Positions
   employees Employee[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
 }
 
 model Position {

@@ -4,7 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { useAuthStore } from '../store/authStore';
 import type { LoginCredentials } from '../types/auth';
-import { LogIn, Mail, Lock } from 'lucide-react'; // Para sa icons
+import { LogIn, Mail, Lock, Loader2 } from 'lucide-react'; // Para sa icons
+
+const styles = {
+  // Ang background ay ang blue-to-purple gradient
+  mainBackground: {
+    background: 'linear-gradient(135deg, #2D4CFF 0%, #B030D1 100%)', // Ginamit ang shades mula sa logo
+    minHeight: 'vh-100',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', sans-serif",
+  },
+};
 
 const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +41,13 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div style={styles.mainBackground} className="vh-100 d-flex align-items-center justify-content-center bg-light">
       <div className="card shadow-lg border-0" style={{ maxWidth: '400px', width: '100%' }}>
         <div className="card-body p-5">
           <div className="text-center mb-4">
-            <div className="bg-primary text-white d-inline-block p-3 rounded-circle mb-3">
-              <LogIn size={32} />
+            <div className="bg-fuchsia-200 text-white d-inline-block p-3 rounded-circle mb-3">
+              <img src="/images/hris_logo.png" alt="" />
             </div>
-            <h2 className="fw-bold">HRIS Login</h2>
             <p className="text-muted">Enter your credentials to access the system</p>
           </div>
 
@@ -77,10 +88,17 @@ const LoginPage = () => {
 
             <button 
               type="submit" 
-              className="btn btn-primary w-100 py-2 fw-bold shadow-sm"
+              className="d-flex align-items-center justify-content-center w-100 btn btn-primary gap-2 fw-bold shadow-sm"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? (
+                <>
+                  <Loader2 size={16} className="animate-spin fw-bold" />
+                  Signing in...
+                </>
+              ) : (
+                <><LogIn size={16} className='fw-bold' />Sign In</>
+              )}
             </button>
           </form>
         </div>

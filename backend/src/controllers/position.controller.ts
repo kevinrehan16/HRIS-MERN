@@ -3,9 +3,9 @@ import prisma from '../config/db.js';
 import { catchAsync } from '../utils/catchAsync.js';
 
 export const createPosition = catchAsync(async (req: Request, res: Response) => {
-  const { title, description } = req.body;
+  const { title, description, departmentId, minSalary, maxSalary } = req.body;
   const newPosition = await prisma.position.create({
-    data: { title, description }
+    data: { title, description, departmentId, minSalary, maxSalary }
   });
   res.status(201).json({ success: true, data: newPosition });
 });

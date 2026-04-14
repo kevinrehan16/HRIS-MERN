@@ -103,13 +103,13 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
       <div className="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* HEADER */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4 flex justify-between items-center text-white">
           <div>
             <h3 className="text-xl font-bold text-slate-800">{initialData ? 'Edit Employee' : 'Add New Employee'}</h3>
-            <p className="text-sm text-slate-500 font-medium">{initialData ? 'Update the details of the selected employee.' : 'Register a new member to the system.'}</p>
+            <p className="text-sm text-slate-200 font-medium">{initialData ? 'Update the details of the selected employee.' : 'Register a new member to the system.'}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-            <X size={20} className="text-slate-500" />
+          <button onClick={onClose} className="hover:bg-white/10 p-1 rounded-full transition-colors">
+            <X size={20} />
           </button>
         </div>
 

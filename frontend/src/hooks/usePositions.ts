@@ -28,13 +28,15 @@ export const usePositions = (search: string = "") => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['positions'] }),
   });
 
+  const createMutation = useMutation({
+    mutationFn: PositionService.create,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['positions'] }),
+  });
+
   return { 
     positionsQuery, 
-    createMutation: useMutation({
-      mutationFn: PositionService.create,
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['positions'] }),
-    }),
     updateMutation,
-    deleteMutation
+    deleteMutation,
+    createMutation
   };
 };

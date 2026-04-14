@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarDays, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronRight } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const location = useLocation();
@@ -82,10 +82,10 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
     >
       {/* LOGO */}
       <div className="h-[70px] flex items-center px-6 border-b border-white/5">
-        <div className="bg-blue-600 rounded-lg p-1.5 shadow-lg flex-shrink-0">
-          <span className="text-white font-bold text-xl px-1">G</span>
+        <div className="bg-slate-100 rounded-circle p-1.5 shadow-lg flex-shrink-0">
+          <img src="/images/hris_logo.png" alt="Logo" className="h-6 w-6 object-contain" />
         </div>
-        {!isCollapsed && <span className="ml-3 font-bold text-xl tracking-tight text-white uppercase">HRIS System</span>}
+        {!isCollapsed && <span className="ml-3 text-[16px] font-bold text-xl tracking-tight text-white uppercase">Human Resource</span>}
       </div>
 
       {/* NAV */}
@@ -127,7 +127,7 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
             </div>
             {!isCollapsed && (
                <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'employees' ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                  <ChevronDown size={16} />
+                  <ChevronRight size={16} />
                </div>
             )}
           </div> */}
@@ -205,8 +205,8 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
               {!isCollapsed && <span className="ml-3 truncate font-semibold">Referentials</span>}
             </div>
             {!isCollapsed && (
-               <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'referentials' ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                  <ChevronDown size={16} />
+               <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'referentials' ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  <ChevronRight size={16} />
                </div>
             )}
           </div>

@@ -54,30 +54,22 @@ export const timeIn = catchAsync(async (req: any, res: Response) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // 1. Kunin ang Employee + Schedule (optional na ngayon)
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
     include: { schedule: true }
   });
 
-  // 2. Fallback values kung walang schedule
   const shiftStartString = employee?.schedule?.shiftStart ?? "08:00";
   const gracePeriod = employee?.schedule?.gracePeriod ?? 0;
 
-  // 3. Convert "08:00" to Date today
-  const [hours, minutes] = shiftStartString.split(':').map(Number);
+  // FIXED: Para iwas TypeScript "undefined" error
+  const timeParts = shiftStartString.split(':');
   const shiftStartTime = new Date();
-  shiftStartTime.setHours(hours, minutes, 0, 0);
+  shiftStartTime.setHours(Number(timeParts[0]) || 0, Number(timeParts[1]) || 0, 0, 0);
 
-  // 4. Late threshold
-  const lateThreshold = new Date(
-    shiftStartTime.getTime() + gracePeriod * 60000
-  );
-
-  // 5. Determine status
+  const lateThreshold = new Date(shiftStartTime.getTime() + gracePeriod * 60000);
   const status = now > lateThreshold ? 'LATE' : 'PRESENT';
 
-  // 6. Remarks (handle no schedule)
   let remarks = 'On time';
   if (status === 'LATE') {
     remarks = employee?.schedule
@@ -85,15 +77,16 @@ export const timeIn = catchAsync(async (req: any, res: Response) => {
       : 'Late (No schedule assigned)';
   }
 
-  // 7. Save
+  const existingAttendance = await prisma.attendance.findUnique({
+    where: { employeeId_date: { employeeId, date: today } }
+  });
+
+  if (existingAttendance) {
+    return res.status(400).json({ success: false, message: "You have already clocked in for today." });
+  }
+
   const attendance = await prisma.attendance.create({
-    data: {
-      employeeId,
-      date: today,
-      timeIn: now,
-      status,
-      remarks
-    }
+    data: { employeeId, date: today, timeIn: now, status, remarks }
   });
 
   sendResponse(res, 201, attendance, `Clocked in successfully as ${status}`);
@@ -105,30 +98,50 @@ export const timeOut = catchAsync(async (req: any, res: Response) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // 1. Hanapin ang Attendance record para sa araw na ito
   const attendance = await prisma.attendance.findUnique({
     where: { employeeId_date: { employeeId, date: today } }
   });
 
-  if (!attendance) throw new AppError("No Time-In found!", 404);
+  // 2. Validations
+  if (!attendance) throw new AppError("No Time-In found for today!", 404);
   if (attendance.timeOut) throw new AppError("Already clocked out!", 400);
 
-  // Logic: Kung ang Time Out ay bago mag 6:00 PM (Assuming 9am-6pm shift)
-  const shiftEnd = new Date();
-  shiftEnd.setHours(18, 0, 0, 0); // 6:00 PM
+  // 3. Kunin ang Schedule ng Employee para sa dynamic Shift End
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    include: { schedule: true }
+  });
 
-  const isUndertime = now < shiftEnd;
+  // 4. Kunin ang shiftEnd (Default sa 18:00 kung walang schedule na naka-assign)
+  const shiftEndString = employee?.schedule?.shiftEnd ?? "18:00";
+  const timeParts = shiftEndString.split(':');
+  // const [endHours, endMinutes] = shiftEndString.split(':').map(Number);
+  
+  const shiftEndTime = new Date();
+    shiftEndTime.setHours(
+    Number(timeParts[0]) || 0, // Fallback sa 0 kung sakaling mag-fail
+    Number(timeParts[1]) || 0, 
+    0, 
+    0
+  );
 
+  // 5. Logic para sa Undertime
+  const isUndertime = now < shiftEndTime;
+
+  // 6. Update the record
   const updated = await prisma.attendance.update({
     where: { id: attendance.id },
     data: {
       timeOut: now,
+      // Pinagsama natin ang dating remarks + bagong status
       remarks: isUndertime 
-        ? `${attendance.remarks || ''} | Undertime`.trim() 
+        ? `${attendance.remarks || ''} | Undertime`.trim().replace(/^ \| /, '') 
         : attendance.remarks
     },
   });
 
-  sendResponse(res, 200, updated, "Clocked out successfully!");
+  sendResponse(res, 200, updated, `Clocked out successfully! ${isUndertime ? '(Undertime)' : ''}`);
 });
 
 export const getAttendanceSummary = catchAsync(async (req: any, res: Response) => {

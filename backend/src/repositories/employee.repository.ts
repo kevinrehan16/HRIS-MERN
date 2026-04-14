@@ -37,7 +37,7 @@ export const findAllEmployees = async (page: number, limit: number, search?: str
       where,
       skip,
       take: limit,
-      include: { department: true, position: true },
+      include: { department: true, position: true, schedule: true },
       orderBy: { id: 'desc' },
     }),
     prisma.employee.count({ where }),
@@ -47,10 +47,14 @@ export const findAllEmployees = async (page: number, limit: number, search?: str
 };
 
 // Dagdagan na natin ng update para sa profile
-export const updateEmployee = async (id: number, data: Prisma.EmployeeUpdateInput) => {
+export const updateEmployee = async (id: number, data: any) => {
   return await prisma.employee.update({
-    where: { id },
-    data,
+    where: { id: Number(id) },
+    data: {
+      ...data,
+      departmentId: data.departmentId ? Number(data.departmentId) : undefined,
+      positionId: data.positionId ? Number(data.positionId) : undefined,
+    },
     include: {
       department: true,
       position: true,

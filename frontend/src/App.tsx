@@ -13,28 +13,9 @@ import Attendance from './pages/admin/attendance/Attendance';
 import Department from './pages/admin/referentials/Department';
 import Position from './pages/admin/referentials/Position';
 
-// Gagawa tayo ng separate file para dito later, 
-// pero for now let's keep it here or move it to /pages
-// const Dashboard = () => {
-//   const { user, logout } = useAuthStore();
-//   return (
-//     <div className="p-5 text-center">
-//       <div className="card p-4 shadow-sm mx-auto" style={{ maxWidth: '600px' }}>
-//         <h1 className="fw-bold text-primary">HRIS Dashboard</h1>
-//         <hr />
-//         <p className="fs-5">Welcome back, <strong>{user?.email}</strong>!</p>
-//         <p className="text-muted small">Your Role: {user?.role}</p>
-//         <button className="btn btn-outline-danger mt-3" onClick={logout}>
-//           Sign Out
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-
 function App() {
   // DAGDAGAN NG 'user' DITO
-  const { user, isAuthenticated, setAuth, logout, isInitialLoading, setInitialLoading } = useAuthStore();
+  const { user, isAuthenticated, setAuth, isInitialLoading, setInitialLoading } = useAuthStore();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -48,7 +29,6 @@ function App() {
         }
       } catch (err: any) {
         // DITO: Linisin lang ang Zustand state nang walang redirect
-        // Gumawa tayo ng "silent logout" or just set state to null
         useAuthStore.setState({ user: null, isAuthenticated: false });
       } finally {
         // PINAKA-IMPORTANTENG LINE:

@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Briefcase, Users, MoreVertical, Download, SearchIcon, Plus, Building2, CalendarPlus2  } from 'lucide-react';
+import { BriefcaseBusiness, Users, MoreVertical, Download, SearchIcon, Plus, Building2, CalendarPlus2  } from 'lucide-react';
 
 import { usePositions } from '../../../hooks/usePositions';
+
+import AddPositionModal from '../../../components/modals/AddPositionModal';
 
 import PageHeader from '../../../components/common/PageHeader';
 import TableSkeleton from '../../../components/common/TableSkeleton';
@@ -11,15 +13,16 @@ const Position = () => {
   const [search, setSearch] = useState("");
   const { positionsQuery } = usePositions();
   const { data: positions, isLoading, isError } = positionsQuery;
+  // console.log("Positions Data:", positions);
 
-  console.log("Positions Data:", positions);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="bg-[#f2f5f9]">
       <PageHeader 
         title="Positions" 
         subtitle="Centralized directory for all position records."
-        titleIcon={<Briefcase size={35} className="text-white" />}
+        titleIcon={<BriefcaseBusiness size={35} className="text-white" />}
       >
         <button className="flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-all">
           <Download size={18} /> <span className="text-sm font-semibold">Export CSV</span>
@@ -43,6 +46,7 @@ const Position = () => {
               
               <button
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-95"
+                onClick={()=>setIsModalOpen(true)}
               >
                 <Plus size={20} /> Add Position
               </button>
@@ -70,10 +74,10 @@ const Position = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold">
-                          <Briefcase size={18} />
+                          <BriefcaseBusiness size={18} />
                         </div>
                         <div>
-                          <span className="block font-bold text-slate-700">{pos.title}</span>
+                          <span className="block font-bold text-slate-700 transition-colors group-hover:text-blue-600">{pos.title}</span>
                           <span className="text-[10px] font-bold text-slate-400 uppercase">{formatID(pos.id, "POS")}</span>
                         </div>
                       </div>
@@ -180,6 +184,11 @@ const Position = () => {
         </div>
       </div>
      
+      <AddPositionModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
+    
     </div>
   );
 };

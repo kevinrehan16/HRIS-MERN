@@ -117,13 +117,13 @@ const Employees = () => {
           <div className="relative overflow-y-auto overflow-x-auto h-[310px] custom-scrollbar border-b border-slate-100">
             <table className="w-full text-left border-separate border-spacing-0">
               <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
-                <tr className="font-black text-slate-400 uppercase tracking-widest text-[11px]">
-                  <th style={{ width: "25%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100">Employee Information</th>
-                  <th style={{ width: "15%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100">Position</th>
-                  <th style={{ width: "20%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100">Department</th>
-                  <th style={{ width: "15%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100">Role</th>
-                  <th style={{ width: "15%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 text-center">Status</th>
-                  <th style={{ width: "10%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 text-center">Actions</th>
+                <tr className="text-slate-400 uppercase tracking-wider text-[11px]">
+                  <th style={{ width: "25%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 font-extrabold">Employee Information</th>
+                  <th style={{ width: "15%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 font-extrabold">Position</th>
+                  <th style={{ width: "20%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 font-extrabold">Department</th>
+                  <th style={{ width: "15%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 font-extrabold">Role</th>
+                  <th style={{ width: "15%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 font-extrabold text-center">Status</th>
+                  <th style={{ width: "10%" }} className="px-4 py-4 sticky top-0 bg-slate-50 border-b border-slate-100 font-extrabold text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
