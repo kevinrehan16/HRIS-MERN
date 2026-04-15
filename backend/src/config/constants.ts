@@ -9,4 +9,5 @@ export const ROUTES = {
   LEAVE: `${API_PREFIX}/leave`,
   PAYROLL: `${API_PREFIX}/payroll`,
   POSITIONS: `${API_PREFIX}/positions`,
+  HOLIDAYS: `${API_PREFIX}/holidays`,
 };

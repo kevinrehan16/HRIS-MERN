@@ -4,39 +4,43 @@ import prisma from '../config/db.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { AppError } from '../utils/AppError.js';
+import { calculateSSS, calculatePhilHealth, calculatePagIBIG, calculateWithholdingTax } from '../services/statutory.service.js';
+
+// Helper function para sa Night Diff (10PM - 6AM)
+const getNightDiffMinutes = (timeIn: Date, timeOut: Date): number => {
+  let nightMins = 0;
+  let current = new Date(timeIn);
+  const end = new Date(timeOut);
+
+  while (current < end) {
+    const hour = current.getHours();
+    if (hour >= 22 || hour < 6) {
+      nightMins++;
+    }
+    current.setMinutes(current.getMinutes() + 1);
+  }
+  return nightMins;
+};
 
 export const generatePayroll = catchAsync(async (req: Request, res: Response) => {
-  const { periodStart, periodEnd } = req.body;
+  const { periodStart, periodEnd, extraBonusMonths = 0 } = req.body; // Pwedeng ipasa kung may 14th-16th month
 
   const startDate = new Date(periodStart);
   startDate.setUTCHours(0, 0, 0, 0);
-
   const endDate = new Date(periodEnd);
   endDate.setUTCHours(23, 59, 59, 999);
 
-  // --- 1. SAFETY CHECK: Bawal i-regenerate kung APPROVED na ---
+  // 1. SAFETY CHECK
   const existingApproved = await prisma.payroll.findFirst({
-    where: {
-      periodStart: startDate,
-      periodEnd: endDate,
-      status: PayrollStatus.APPROVED // Gamit ang Enum
-    }
+    where: { periodStart: startDate, periodEnd: endDate, status: PayrollStatus.APPROVED }
   });
+  if (existingApproved) throw new AppError('Payroll period already APPROVED.', 400);
 
-  if (existingApproved) {
-    throw new AppError('Payroll for this period is already APPROVED and cannot be modified.', 400);
-  }
-
+  // 2. FETCH EMPLOYEES
   const employees = await prisma.employee.findMany({
     include: {
       attendances: { where: { date: { gte: startDate, lte: endDate } } },
-      leaves: { 
-        where: { 
-          status: 'APPROVED', 
-          startDate: { lte: endDate }, 
-          endDate: { gte: startDate } 
-        } 
-      }
+      leaves: { where: { status: 'APPROVED', startDate: { lte: endDate }, endDate: { gte: startDate } } }
     }
   });
 
@@ -44,12 +48,40 @@ export const generatePayroll = catchAsync(async (req: Request, res: Response) =>
 
   for (const emp of employees) {
     const monthlyBasic = emp.basicSalary || 0;
-    const dailyRate = monthlyBasic / 22;
+    const dailyRate = monthlyBasic / 22; 
     const hourlyRate = dailyRate / 8;
     const semiMonthlyBasic = monthlyBasic / 2;
 
-    // --- A. ABSENT LOGIC ---
-    const daysPresent = emp.attendances.length;
+    // A. STATUTORY (Semi-monthly)
+    const sss = calculateSSS(monthlyBasic) / 2;
+    const philhealth = calculatePhilHealth(monthlyBasic) / 2;
+    const pagibig = calculatePagIBIG(monthlyBasic) / 2;
+
+    // B. ATTENDANCE & NIGHT DIFF
+    let totalLateMins = 0, totalUndertimeMins = 0, totalRegularOTMins = 0, totalRestDayMins = 0;
+    let totalNightDiffMins = 0, daysPresent = 0;
+
+    emp.attendances.forEach(att => {
+      daysPresent++;
+      totalLateMins += att.lateMinutes || 0;
+      totalUndertimeMins += att.undertimeMinutes || 0;
+
+      // Night Diff Calculation (10PM - 6AM)
+      if (att.timeIn && att.timeOut) {
+        totalNightDiffMins += getNightDiffMinutes(new Date(att.timeIn), new Date(att.timeOut));
+      }
+
+      if (att.status === 'REST_DAY_WORK') {
+        const stayMins = att.timeIn && att.timeOut 
+          ? Math.floor((new Date(att.timeOut).getTime() - new Date(att.timeIn).getTime()) / 60000) 
+          : 0;
+        totalRestDayMins += stayMins;
+      } else {
+        totalRegularOTMins += att.overtimeMinutes || 0;
+      }
+    });
+
+    // C. LEAVES & ABSENCES
     let paidLeaveDays = 0;
     emp.leaves.forEach(l => {
       const s = l.startDate < startDate ? startDate : l.startDate;
@@ -59,84 +91,59 @@ export const generatePayroll = catchAsync(async (req: Request, res: Response) =>
     });
 
     const totalWorkingDaysInPeriod = 11; 
-    const unpaidDays = totalWorkingDaysInPeriod - (daysPresent + paidLeaveDays);
-    const finalUnpaidDays = unpaidDays > 0 ? unpaidDays : 0;
-    const absentDeduction = finalUnpaidDays * dailyRate;
+    const absentDeduction = Math.max(0, totalWorkingDaysInPeriod - (daysPresent + paidLeaveDays)) * dailyRate;
 
-    // --- B. LATE LOGIC ---
-    let totalLateMinutes = 0;
-    emp.attendances.forEach(att => {
-      if (att.timeIn) {
-        const timeIn = new Date(att.timeIn);
-        const hours = timeIn.getUTCHours();
-        const minutes = timeIn.getUTCMinutes();
-        const totalMinutesIn = (hours * 60) + minutes;
-        const shiftStartMinutes = 8 * 60; 
+    // D. EARNINGS
+    const lateDeduction = (hourlyRate / 60) * totalLateMins;
+    const undertimeDeduction = (hourlyRate / 60) * totalUndertimeMins;
+    
+    const regularOTPay = (hourlyRate * 1.25) * (totalRegularOTMins / 60);
+    const restDayPay = (hourlyRate * 1.30) * (totalRestDayMins / 60);
+    const nightDiffPay = (hourlyRate * 0.10) * (totalNightDiffMins / 60); // 10% Premium
+    
+    const totalOTPay = regularOTPay + restDayPay + nightDiffPay;
 
-        if (totalMinutesIn > shiftStartMinutes) {
-          const lateMins = totalMinutesIn - shiftStartMinutes;
-          totalLateMinutes += (lateMins > 480 ? 480 : lateMins);
-        }
-      }
-    });
-    const lateDeduction = (hourlyRate / 60) * totalLateMinutes;
+    // E. ACCRUALS (13th Month & Others)
+    const accrued13thMonth = semiMonthlyBasic / 12;
+    const accruedOtherBonuses = (semiMonthlyBasic / 12) * extraBonusMonths;
 
-    // --- C. OVERTIME LOGIC ---
-    let totalOTMinutes = 0;
-    emp.attendances.forEach(att => {
-      if (att.timeOut) {
-        const timeOut = new Date(att.timeOut);
-        const hoursOut = timeOut.getUTCHours();
-        const minutesOut = timeOut.getUTCMinutes();
-        const totalMinutesOut = (hoursOut * 60) + minutesOut;
-        const shiftEndMinutes = 17 * 60; 
+    // F. TAX CALCULATION
+    const totalDeductionsBeforeTax = absentDeduction + lateDeduction + undertimeDeduction + sss + philhealth + pagibig;
+    const taxableIncome = (semiMonthlyBasic + totalOTPay) - totalDeductionsBeforeTax;
+    const withholdingTax = calculateWithholdingTax(taxableIncome > 0 ? taxableIncome : 0);
 
-        if (totalMinutesOut > (shiftEndMinutes + 30)) {
-          totalOTMinutes += (totalMinutesOut - shiftEndMinutes);
-        }
-      }
-    });
-    const overtimePay = (hourlyRate * 1.25) * (totalOTMinutes / 60);
-
-    // --- D. STATUTORY ---
-    const sss = (monthlyBasic > 0 ? 500 : 0) / 2;
-    const philhealth = (monthlyBasic * 0.025) / 2;
-    const pagibig = 100 / 2;
-
-    // --- E. FINAL NET PAY ---
-    const totalDeductions = absentDeduction + lateDeduction + sss + philhealth + pagibig;
-    let netPay = (semiMonthlyBasic + overtimePay) - totalDeductions;
-    if (netPay < 0) netPay = 0;
+    // G. FINAL NET PAY
+    const finalTotalDeductions = totalDeductionsBeforeTax + withholdingTax;
+    let netPay = Math.max(0, (semiMonthlyBasic + totalOTPay) - finalTotalDeductions);
 
     payrolls.push({
       employeeId: emp.id,
       periodStart: startDate,
       periodEnd: endDate,
       basicPay: semiMonthlyBasic,
-      overtimePay: overtimePay,
+      overtimePay: totalOTPay,
+      nightDiffPay,
       absentDeduction,
       lateDeduction,
+      undertimeDeduction,
       sss,
       philhealth,
       pagibig,
+      withholdingTax,
+      accrued13thMonth,
+      accruedOtherBonuses,
       netPay,
-      status: PayrollStatus.PENDING // Gamit ang Enum
+      status: PayrollStatus.PENDING
     });
   }
 
-  // --- 2. IWAS DUPLICATE ---
-  // Buburahin lang ang PENDING records para mapalitan ng bago.
+  // 3. REFRESH & SAVE
   await prisma.payroll.deleteMany({ 
-    where: { 
-      periodStart: startDate, 
-      periodEnd: endDate, 
-      status: PayrollStatus.PENDING 
-    } 
+    where: { periodStart: startDate, periodEnd: endDate, status: PayrollStatus.PENDING } 
   });
 
   const result = await prisma.payroll.createMany({ data: payrolls });
-
-  sendResponse(res, 201, result, "Payroll generated successfully.");
+  sendResponse(res, 201, result, `Generated for ${employees.length} employees with Bonuses & Night Diff.`);
 });
 
 // --- 3. NEW: APPROVE PAYROLL FUNCTION ---
@@ -285,21 +292,36 @@ export const getMyPayrolls = catchAsync(async (req: AuthRequest, res: Response) 
 });
 
 export const getPayrollSummary = catchAsync(async (req: Request, res: Response) => {
-  // Grupu-grupuhin natin ang payroll records per period
+  // Grupu-grupuhin ang payroll records per period at status
   const summary = await prisma.payroll.groupBy({
     by: ['periodStart', 'periodEnd', 'status'],
     _count: {
-      employeeId: true // Ilang employees ang kasama sa cut-off
+      employeeId: true // Total employees processed for this batch
     },
     _sum: {
-      netPay: true,
-      overtimePay: true,
-      absentDeduction: true
+      // --- Cash Outflow ---
+      basicPay: true,      // Total Base Pay
+      overtimePay: true,   // Total OT paid
+      netPay: true,        // Total cash needed for bank transfer
+
+      // --- Deductions / Remittances ---
+      withholdingTax: true, // For BIR remittance
+      sss: true,            // For SSS remittance
+      philhealth: true,     // For PhilHealth remittance
+      pagibig: true,        // For Pag-IBIG remittance
+      
+      // --- Penalties ---
+      absentDeduction: true,
+      lateDeduction: true,
+      undertimeDeduction: true
     },
     orderBy: {
       periodStart: 'desc'
     }
   });
 
-  sendResponse(res, 200, summary, "Payroll periods summary retrieved.");
+  // Optional: Add a calculated field for "Total Contributions" per group if needed 
+  // pero usually, itong raw sums ay sapat na para sa Finance Dashboard.
+
+  sendResponse(res, 200, summary, "Payroll periods summary retrieved successfully.");
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarDays, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronRight, MonitorCheck } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const location = useLocation();
@@ -8,11 +8,19 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
   useEffect(() => {
     const path = location.pathname;
-    // Kung ang URL ay departments o positions, panatilihing 'referentials' ang openSubMenu
+    
     if (path.includes('/admin/departments') || path.includes('/admin/positions')) {
       setOpenSubMenu('referentials');
-    } else if (!isCollapsed) {
-      // Optional: I-close ang sub-menu kung lumipat sa ibang main tabs gaya ng Dashboard
+    } 
+    // Baguhin ito: 'approvals' dapat ang i-set mo, hindi 'attendance'
+    else if (
+      path.includes('/admin/attendance-corrections') || 
+      path.includes('/admin/leave-requests') || 
+      path.includes('/admin/overtime-requests')
+    ) {
+      setOpenSubMenu('approvals'); // <--- Eto dapat ang itugma mo sa toggleSubMenu key
+    } 
+    else if (!isCollapsed) {
       setOpenSubMenu(null);
     }
   }, [location.pathname, isCollapsed]);
@@ -115,54 +123,11 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
           {isCollapsed && <FloatingPopup title="Employees" />}
         </div>
 
-        {/* EMPLOYEES */}
-        {/* <div className="relative group/item">
-          <div 
-            onClick={() => toggleSubMenu('employees')}
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center justify-between cursor-pointer ${isParentActive('/admin/employees') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
-          >
-            <div className="flex items-center">
-              <Users size={22} className="flex-shrink-0" />
-              {!isCollapsed && <span className="ml-3 truncate font-semibold">Employees</span>}
-            </div>
-            {!isCollapsed && (
-               <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'employees' ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                  <ChevronRight size={16} />
-               </div>
-            )}
-          </div> */}
-
-          {/* EXPANDED SUB-MENU */}
-          {/* {!isCollapsed && openSubMenu === 'employees' && (
-            <div className="bg-black/10 py-1 animate-in">
-              <Link to="/admin/employees" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/employees') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">All Staff</span>
-              </Link>
-              <Link to="/admin/employees/add" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/employees/add') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">Add New</span>
-              </Link>
-            </div>
-          )} */}
-
-          {/* COLLAPSED POPUP */}
-          {/* {isCollapsed && (
-            <FloatingPopup 
-              title="Employees" 
-              links={[
-                { label: 'All Staff', to: '/admin/employees' },
-                { label: 'Add New', to: '/admin/employees/add' }
-              ]} 
-            />
-          )}
-        </div> */}
-
         {/* ATTENDANCE */}
         <div className="relative group/item">
           <Link 
             to="/admin/attendance" 
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isParentActive('/admin/attendance') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isExactActive('/admin/attendance') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
           >
             <ClipboardClock size={22} className="flex-shrink-0" />
             {!isCollapsed && <span className="ml-3 truncate font-semibold">Attendance</span>}
@@ -192,6 +157,54 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
             {!isCollapsed && <span className="ml-3 truncate font-semibold">Payroll</span>}
           </Link>
           {isCollapsed && <FloatingPopup title="Payroll" />}
+        </div>
+
+        {/* APPROVALS */}
+        <div className="relative group/item">
+          <div 
+            onClick={() => toggleSubMenu('approvals')}
+            className={`sidebar-link !rounded-none px-6 py-4 flex items-center justify-between cursor-pointer ${isParentActive(['/admin/leave-requests', '/admin/overtime-requests', '/admin/attendance-corrections']) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+          >
+            <div className="flex items-center">
+              <MonitorCheck size={22} className="flex-shrink-0" />
+              {!isCollapsed && <span className="ml-3 truncate font-semibold">Approvals</span>}
+            </div>
+            {!isCollapsed && (
+               <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'approvals' ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  <ChevronRight size={16} />
+               </div>
+            )}
+          </div>
+
+          {/* EXPANDED SUB-MENU */}
+          {!isCollapsed && openSubMenu === 'approvals' && (
+            <div className="bg-black/10 py-1 animate-in">
+              <Link to="/admin/overtime-requests" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/overtime-requests') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={16} />
+                <span className="text-[0.95rem]">Overtime Requests</span>
+              </Link>
+              <Link to="/admin/attendance-corrections" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/attendance-corrections') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={16} />
+                <span className="text-[0.95rem]">Attendance Corrections</span>
+              </Link>
+              <Link to="/admin/leave-requests" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/leave-requests') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={16} />
+                <span className="text-[0.95rem]">Leave Requests</span>
+              </Link>
+            </div>
+          )}
+
+          {/* COLLAPSED POPUP */}
+          {isCollapsed && (
+            <FloatingPopup 
+              title="Approvals" 
+              links={[
+                { label: 'Overtime Requests', to: '/admin/overtime-requests' },
+                { label: 'Attendance Corrections', to: '/admin/attendance-corrections' },
+                { label: 'Leave Requests', to: '/admin/leave-requests' }
+              ]} 
+            />
+          )}
         </div>
 
         {/* REFERENTIALS */}

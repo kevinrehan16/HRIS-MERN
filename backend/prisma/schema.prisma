@@ -59,28 +59,37 @@ model Position {
 }
 
 model Attendance {
-  id           Int      @id @default(autoincrement())
-  date         DateTime @default(now()) // Para sa YYYY-MM-DD
-  timeIn       DateTime @default(now())
-  timeOut      DateTime?
-  status       AttendanceStatus @default(PRESENT)
-  remarks      String?  // Halimbawa: "Late due to traffic"
+  id               Int              @id @default(autoincrement())
+  date             DateTime         @default(now()) // Para sa YYYY-MM-DD
+  timeIn           DateTime         @default(now())
+  timeOut          DateTime?
+  status           AttendanceStatus @default(PRESENT) // PRESENT, LATE, ABSENT, ON_LEAVE
+  lateMinutes      Int              @default(0)  // Para madaling i-multiply sa hourly rate
+  undertimeMinutes Int              @default(0)  // Para sa deduction sa payroll
+  isUndertime      Boolean          @default(false)
+  overtimeMinutes  Int              @default(0)
+  otStatus         OTStatus         @default(NONE) // NONE, PENDING, APPROVED, REJECTED
+  remarks          String?          // Halimbawa: "Late due to traffic"
+  otApprovedBy     String?
+  otRemarks        String?          // Reason kung bakit ni-reject (e.g., "No work done")
   
   // Relations
-  employeeId   Int
-  employee     Employee @relation(fields: [employeeId], references: [id])
+  employeeId       Int
+  employee         Employee         @relation(fields: [employeeId], references: [id])
 
   // Enterprise Rule: Isang attendance record lang per employee per day
   @@unique([employeeId, date]) 
 }
 
 model Schedule {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique // Halimbawa: "Morning Shift", "Night Shift"
-  shiftStart  String     // Format: "08:00" (HH:mm)
-  shiftEnd    String     // Format: "17:00"
-  gracePeriod Int        @default(15) // Minutes bago maging "LATE"
-  employees   Employee[]
+  id             Int        @id @default(autoincrement())
+  name           String     @unique // Halimbawa: "Morning Shift", "Night Shift"
+  shiftStart     String     // Format: "08:00" (HH:mm)
+  shiftEnd       String     // Format: "17:00"
+  gracePeriod    Int        @default(15) // Minutes bago maging "LATE"
+  breakDuration  Int        @default(60) // New: Duration in minutes
+  restDays       String     @default("Saturday,Sunday")
+  employees      Employee[]
 }
 
 model LeaveRequest {
@@ -101,30 +110,41 @@ model LeaveRequest {
 }
 
 model Payroll {
-  id              Int      @id @default(autoincrement())
-  employeeId      Int
-  employee        Employee @relation(fields: [employeeId], references: [id])
+  id                  Int      @id @default(autoincrement())
+  employeeId          Int
+  employee            Employee @relation(fields: [employeeId], references: [id])
   
-  periodStart     DateTime
-  periodEnd       DateTime
+  periodStart         DateTime
+  periodEnd           DateTime
   
   // Earnings
-  basicPay        Float    // (Monthly Basic / 2) for semi-monthly
-  overtimePay     Float    @default(0.0)
+  basicPay            Float    // (Monthly Basic / 2) for semi-monthly
+  overtimePay         Float    @default(0.0)
   
   // Deductions
-  absentDeduction Float    @default(0.0)
-  lateDeduction   Float    @default(0.0)
-  sss             Float    @default(0.0)
-  philhealth      Float    @default(0.0)
-  pagibig         Float    @default(0.0)
-  tax             Float    @default(0.0)
+  absentDeduction     Float    @default(0.0)
+  lateDeduction       Float    @default(0.0)
+  undertimeDeduction  Float    @default(0)
+  sss                 Float    @default(0.0)
+  philhealth          Float    @default(0.0)
+  pagibig             Float    @default(0.0)
+  withholdingTax      Float    @default(0)
+  nightDiffPay        Float    @default(0)
+  accrued13thMonth    Float    @default(0)
+  accruedOtherBonuses Float    @default(0)
   
-  netPay          Float
-  status          PayrollStatus  @default(PENDING) // PENDING, PAID, VOID
-  createdAt       DateTime @default(now())
+  netPay              Float
+  status              PayrollStatus  @default(PENDING) // PENDING, PAID, VOID
+  createdAt           DateTime @default(now())
 }
 
+model Holiday {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @unique // Ang mismong petsa ng holiday
+  name        String   // Halimbawa: "Christmas Day" o "Labor Day"
+  type        String   @default("REGULAR") // REGULAR, SPECIAL_NON_WORKING
+  createdAt   DateTime @default(now())
+}
 
 // ENUMS HERE...
 enum PayrollStatus {
@@ -168,3 +188,9 @@ enum LeaveType {
   PATERNITY  // Para sa mga tatay
 }
 
+enum OTStatus {
+  NONE
+  PENDING
+  APPROVED
+  REJECTED
+}

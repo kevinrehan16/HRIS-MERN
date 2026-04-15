@@ -41,5 +41,30 @@ export const notificationService = {
         cancelButton: 'rounded-xl px-6 py-2.5 font-semibold'
       }
     });
+  },
+
+  prompt: async (title: string, text: string, placeholder: string) => {
+    return Swal.fire({
+      title,
+      html: `<p class="text-sm text-slate-500">${text}</p>`,
+      input: 'textarea',
+      inputPlaceholder: placeholder,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm Reject',
+      confirmButtonColor: '#ef4444', // red-500
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Kailangan ng rason para ma-reject!';
+        }
+      },
+      customClass: {
+        popup: 'rounded-2xl',
+        input: 'rounded-xl text-sm border-slate-200 focus:border-red-500 focus:ring-red-500',
+        confirmButton: 'rounded-xl px-6 py-2.5 font-semibold',
+        cancelButton: 'rounded-xl px-6 py-2.5 font-semibold'
+      }
+    });
   }
 };

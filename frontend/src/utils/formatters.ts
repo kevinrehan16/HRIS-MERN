@@ -34,3 +34,34 @@ export const formatDate = (dateString: string): string => {
     year: 'numeric',
   });
 };
+
+/**
+ * Ino-convert ang "HH:mm" o "HH:mm - HH:mm" into "hh:mm AM/PM"
+ * Example: "06:00 - 15:00" -> "06:00 AM - 03:00 PM"
+ */
+export const formatShiftSchedule = (shiftString: string | undefined | null): string => {
+  if (!shiftString) return 'No Schedule';
+
+  // Function para i-convert ang individual time string
+  const formatTime = (timeStr: string) => {
+    const [hours, minutes] = timeStr.trim().split(':');
+    let h = parseInt(hours, 10);
+    const m = minutes || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    
+    h = h % 12;
+    h = h ? h : 12; // Ang 0 ay dapat maging 12
+    
+    // Nilalagyan natin ng padStart(2, '0') para laging may leading zero (e.g., 06:00 AM)
+    return `${h.toString().padStart(2, '0')}:${m} ${ampm}`;
+  };
+
+  // Kung ang input ay may dash (e.g., "06:00 - 15:00")
+  if (shiftString.includes('-')) {
+    const [start, end] = shiftString.split('-');
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  }
+
+  // Kung single time lang ang pinasa
+  return formatTime(shiftString);
+};

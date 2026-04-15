@@ -8,6 +8,7 @@ import { errorMiddleware } from './middlewares/error.middleware.js';
 
 // import ROUTES HERE // Gagawa tayo nito mamaya
 import { ROUTES } from './config/constants.js';
+import { initAbsentJob } from './jobs/absentJob.js';
 
 import authRoutes from './routes/auth.routes.js';
 import employeeRoutes from './routes/employee.routes.js';
@@ -16,6 +17,7 @@ import attendanceRoutes from './routes/attendance.routes.js';
 import leaveRoutes from './routes/leave.routes.js';
 import payrollRoutes from './routes/payroll.routes.js';
 import positionRoutes from './routes/position.routes.js';
+import holidayRoutes from './routes/holiday.routes.js';
 
 dotenv.config();
 
@@ -29,6 +31,7 @@ app.use(cors({
 }));
 app.use(express.json()); // Para makabasa ng JSON bodies
 app.use(cookieParser());
+initAbsentJob(); // Simulan ang cron job para sa automated absent generation
 
 // 2. Health Check (Optional pero recommended para sa Uptime monitoring)
 app.get('/health', (req, res) => {
@@ -43,6 +46,7 @@ app.use(ROUTES.ATTENDANCE, attendanceRoutes);
 app.use(ROUTES.LEAVE, leaveRoutes);
 app.use(ROUTES.PAYROLL, payrollRoutes);
 app.use(ROUTES.POSITIONS, positionRoutes);
+app.use(ROUTES.HOLIDAYS, holidayRoutes);
 
 
 
