@@ -12,10 +12,20 @@ export const getAdminAttendanceLogs = async (date?: string) => {
 
   return await prisma.attendance.findMany({
     where: {
-      date: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
+      OR: [
+        {
+          // Condition 1: Lahat ng records sa piniling petsa
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        {
+          // Condition 2: Lahat ng "Active" (Naka-Time In pero walang Time Out)
+          // Kahit anong petsa pa sila nag-Time In, lilitaw sila rito
+          timeOut: null, 
+        }
+      ],
     },
     include: {
       employee: {
@@ -23,8 +33,7 @@ export const getAdminAttendanceLogs = async (date?: string) => {
           id: true,
           firstName: true,
           lastName: true,
-          employeeId: true, // e.g., "EMP-2026-001"
-          // profilePicture: true,
+          employeeId: true,
           position: {
             select: { title: true }
           }
@@ -32,7 +41,7 @@ export const getAdminAttendanceLogs = async (date?: string) => {
       },
     },
     orderBy: {
-      timeIn: 'desc', // Latest logs sa taas
+      timeIn: 'desc', 
     },
   });
 };

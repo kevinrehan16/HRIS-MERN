@@ -8,17 +8,15 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
   useEffect(() => {
     const path = location.pathname;
-    
     if (path.includes('/admin/departments') || path.includes('/admin/positions')) {
       setOpenSubMenu('referentials');
     } 
-    // Baguhin ito: 'approvals' dapat ang i-set mo, hindi 'attendance'
     else if (
       path.includes('/admin/attendance-corrections') || 
       path.includes('/admin/leave-requests') || 
       path.includes('/admin/overtime-requests')
     ) {
-      setOpenSubMenu('approvals'); // <--- Eto dapat ang itugma mo sa toggleSubMenu key
+      setOpenSubMenu('approvals');
     } 
     else if (!isCollapsed) {
       setOpenSubMenu(null);
@@ -37,17 +35,16 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   };
   const isExactActive = (path: string) => location.pathname === path;
 
-  // REUSABLE FLOATING POPUP
+  // REUSABLE FLOATING POPUP (UPDATED X-PADDING)
   const FloatingPopup = ({ title, links }: { title: string, links?: { label: string, to: string }[] }) => (
     <div className="absolute left-full top-0 hidden group-hover/item:block z-[9999] animate-in slide-in-from-left-1">
       <div className="w-52 bg-[#1e293b] shadow-[12px_0_35px_rgba(0,0,0,0.5)] rounded-r-xl border-y border-r border-white/10 overflow-hidden">
         
-        {/* Header - px-6 para pantay sa icon padding ng sidebar */}
-        <div className={`px-6 py-[26px] font-semibold text-[1rem] leading-none ${links ? 'bg-white/5 border-b border-white/5' : ''}`}>
-          <span className="text-white/40">{title}</span>
+        {/* Header - px-4 para pantay sa sidebar links */}
+        <div className={`px-4 py-2.5 font-semibold text-[0.95rem] leading-none flex items-center h-[calc(22px+1.25rem+2px)] ${links ? 'bg-white/5 border-b border-white/5' : ''}`}>
+          <span className="text-white/40 uppercase tracking-wider text-[0.75rem]">{title}</span>
         </div>
         
-        {/* Sub-links - White by default, No Underline, Blue only if Active */}
         {links && (
           <div className="py-1">
             {links.map((link) => {
@@ -56,19 +53,15 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 <Link 
                   key={link.to}
                   to={link.to} 
-                  className={`flex items-center gap-3 px-6 py-2 text-[0.95rem] font-medium transition-all !no-underline group/sub ${
+                  className={`flex items-center gap-3 px-4 py-2 text-[0.9rem] font-medium transition-all !no-underline group/sub ${
                     isActive ? '!text-[#2563eb]' : 'text-white hover:!text-[#2563eb]'
                   }`}
                   style={{ textDecoration: 'none' }}
                 >
-                  {/* Circle Icon - same logic as expanded menu */}
-                  <div className="flex-shrink-0">
-                    <CircleDot size={16} />
+                  <div className="flex-shrink-0 opacity-50">
+                    <CircleDot size={14} />
                   </div>
-
-                  <span className="truncate transition-colors">
-                    {link.label}
-                  </span>
+                  <span className="truncate transition-colors">{link.label}</span>
                 </Link>
               );
             })}
@@ -82,92 +75,59 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
     <aside 
       className="sidebar-transition h-screen flex flex-col shadow-xl z-50"
       style={{ 
-        width: isCollapsed ? '80px' : '260px', 
+        width: isCollapsed ? '70px' : '240px', // Binawasan din ang width ng kaunti (80->70, 260->240)
         backgroundColor: 'var(--sidebar-bg)',
         transition: 'width 0.3s ease',
         position: 'relative'
       }}
     >
-      {/* LOGO */}
-      <div className="h-[70px] flex items-center px-6 border-b border-white/5">
-        <div className="bg-slate-100 rounded-circle p-1.5 shadow-lg flex-shrink-0">
-          <img src="/images/hris_logo.png" alt="Logo" className="h-6 w-6 object-contain" />
+      {/* LOGO SECTION - px-4 */}
+      <div className="flex items-center px-4 border-b border-slate-200" style={{ height: '52px' }}>
+        <div className="bg-slate-100 rounded-circle shadow-md flex-shrink-0">
+          <img 
+            src="/images/logohris.png" 
+            alt="Logo" 
+            className="h-6 w-6 object-contain" 
+          />
         </div>
-        {!isCollapsed && <span className="ml-3 text-[16px] font-bold text-xl tracking-tight text-white uppercase">Human Resource</span>}
+        {!isCollapsed && (
+          <span className="ml-3 text-[13px] font-bold tracking-tight text-white uppercase truncate">
+            Human Resource
+          </span>
+        )}
       </div>
 
-      {/* NAV */}
       <nav className={`flex-1 ${isCollapsed ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden'}`}>
         
-        {/* DASHBOARD */}
-        <div className="relative group/item">
-          <Link 
-            to="/admin/dashboard" 
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isExactActive('/admin/dashboard') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
-          >
-            <LayoutDashboard size={22} className="flex-shrink-0" />
-            {!isCollapsed && <span className="ml-3 truncate font-semibold">Dashboard</span>}
-          </Link>
-          {isCollapsed && <FloatingPopup title="Dashboard" />}
-        </div>
-
-        
-        <div className="relative group/item">
-          <Link 
-            to="/admin/employees" 
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isExactActive('/admin/employees') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
-          >
-            <Users size={22} className="flex-shrink-0" />
-            {!isCollapsed && <span className="ml-3 truncate font-semibold">Employees</span>}
-          </Link>
-          {isCollapsed && <FloatingPopup title="Employees" />}
-        </div>
-
-        {/* ATTENDANCE */}
-        <div className="relative group/item">
-          <Link 
-            to="/admin/attendance" 
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isExactActive('/admin/attendance') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
-          >
-            <ClipboardClock size={22} className="flex-shrink-0" />
-            {!isCollapsed && <span className="ml-3 truncate font-semibold">Attendance</span>}
-          </Link>
-          {isCollapsed && <FloatingPopup title="Attendance" />}
-        </div>
-
-        {/* LEAVES */}
-        <div className="relative group/item">
-          <Link 
-            to="/admin/leaves" 
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isParentActive('/admin/leaves') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
-          >
-            <CalendarDays size={22} className="flex-shrink-0" />
-            {!isCollapsed && <span className="ml-3 truncate font-semibold">Leaves</span>}
-          </Link>
-          {isCollapsed && <FloatingPopup title="Leaves" />}
-        </div>
-
-        {/* PAYROLL */}
-        <div className="relative group/item">
-          <Link 
-            to="/admin/payroll" 
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center ${isParentActive('/admin/payroll') ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
-          >
-            <Wallet size={22} className="flex-shrink-0" />
-            {!isCollapsed && <span className="ml-3 truncate font-semibold">Payroll</span>}
-          </Link>
-          {isCollapsed && <FloatingPopup title="Payroll" />}
-        </div>
+        {/* SHARED CLASS: px-4 at py-2.5 */}
+        {[
+          { to: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+          { to: "/admin/employees", icon: Users, label: "Employees" },
+          { to: "/admin/attendance", icon: ClipboardClock, label: "Attendance" },
+          { to: "/admin/leaves", icon: CalendarDays, label: "Leaves" },
+          { to: "/admin/payroll", icon: Wallet, label: "Payroll" },
+        ].map((item) => (
+          <div key={item.to} className="relative group/item">
+            <Link 
+              to={item.to} 
+              className={`sidebar-link !rounded-none px-4 py-2.5 flex items-center ${isExactActive(item.to) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+            >
+              <item.icon size={22} className="flex-shrink-0" />
+              {!isCollapsed && <span className="ml-3 truncate font-light">{item.label}</span>}
+            </Link>
+            {isCollapsed && <FloatingPopup title={item.label} />}
+          </div>
+        ))}
 
         {/* APPROVALS */}
         <div className="relative group/item">
           <div 
             onClick={() => toggleSubMenu('approvals')}
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center justify-between cursor-pointer ${isParentActive(['/admin/leave-requests', '/admin/overtime-requests', '/admin/attendance-corrections']) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+            className={`sidebar-link !rounded-none px-4 py-2.5 flex items-center justify-between cursor-pointer ${isParentActive(['/admin/leave-requests', '/admin/overtime-requests', '/admin/attendance-corrections']) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
           >
             <div className="flex items-center">
               <MonitorCheck size={22} className="flex-shrink-0" />
-              {!isCollapsed && <span className="ml-3 truncate font-semibold">Approvals</span>}
+              {!isCollapsed && <span className="ml-3 truncate font-light">Approvals</span>}
             </div>
             {!isCollapsed && (
                <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'approvals' ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -176,46 +136,33 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
             )}
           </div>
 
-          {/* EXPANDED SUB-MENU */}
           {!isCollapsed && openSubMenu === 'approvals' && (
-            <div className="bg-black/10 py-1 animate-in">
-              <Link to="/admin/overtime-requests" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/overtime-requests') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">Overtime Requests</span>
-              </Link>
-              <Link to="/admin/attendance-corrections" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/attendance-corrections') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">Attendance Corrections</span>
-              </Link>
-              <Link to="/admin/leave-requests" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/leave-requests') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">Leave Requests</span>
-              </Link>
+            <div className="bg-black/30 py-1 animate-in">
+              {/* pl-12 (dating pl-14) para sa balanced look */}
+              {[
+                { to: "/admin/overtime-requests", label: "Overtime Requests" },
+                { to: "/admin/attendance-corrections", label: "Attendance Corrections" },
+                { to: "/admin/leave-requests", label: "Leave Requests" },
+              ].map((sub) => (
+                <Link key={sub.to} to={sub.to} className={`sub-menu-link flex items-center gap-3 pl-7 py-1.5 !rounded-none no-underline ${isExactActive(sub.to) ? 'sub-menu-active' : 'text-white/70'}`}>
+                  <CircleDot size={14} className="opacity-50" />
+                  <span className="text-[0.9rem]">{sub.label}</span>
+                </Link>
+              ))}
             </div>
           )}
-
-          {/* COLLAPSED POPUP */}
-          {isCollapsed && (
-            <FloatingPopup 
-              title="Approvals" 
-              links={[
-                { label: 'Overtime Requests', to: '/admin/overtime-requests' },
-                { label: 'Attendance Corrections', to: '/admin/attendance-corrections' },
-                { label: 'Leave Requests', to: '/admin/leave-requests' }
-              ]} 
-            />
-          )}
+          {isCollapsed && <FloatingPopup title="Approvals" links={[{ label: 'Overtime Requests', to: '/admin/overtime-requests' }, { label: 'Attendance Corrections', to: '/admin/attendance-corrections' }, { label: 'Leave Requests', to: '/admin/leave-requests' }]} />}
         </div>
 
         {/* REFERENTIALS */}
         <div className="relative group/item">
           <div 
             onClick={() => toggleSubMenu('referentials')}
-            className={`sidebar-link !rounded-none px-6 py-4 flex items-center justify-between cursor-pointer ${isParentActive(['/admin/departments', '/admin/positions']) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
+            className={`sidebar-link !rounded-none px-4 py-2.5 flex items-center justify-between cursor-pointer ${isParentActive(['/admin/departments', '/admin/positions']) ? 'sidebar-link-active' : 'text-white/70 hover:text-white'}`}
           >
             <div className="flex items-center">
               <FolderCog size={22} className="flex-shrink-0" />
-              {!isCollapsed && <span className="ml-3 truncate font-semibold">Referentials</span>}
+              {!isCollapsed && <span className="ml-3 truncate font-light">Referentials</span>}
             </div>
             {!isCollapsed && (
                <div className="transition-transform duration-200" style={{ transform: openSubMenu === 'referentials' ? 'rotate(90deg)' : 'rotate(0deg)' }}>
@@ -224,30 +171,19 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
             )}
           </div>
 
-          {/* EXPANDED SUB-MENU */}
           {!isCollapsed && openSubMenu === 'referentials' && (
-            <div className="bg-black/10 py-1 animate-in">
-              <Link to="/admin/departments" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/departments') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">Departments</span>
+            <div className="bg-black/30 py-1 animate-in">
+              <Link to="/admin/departments" className={`sub-menu-link flex items-center gap-3 pl-7 py-1.5 !rounded-none no-underline ${isExactActive('/admin/departments') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={14} className="opacity-50" />
+                <span className="text-[0.9rem]">Departments</span>
               </Link>
-              <Link to="/admin/positions" className={`sub-menu-link flex items-center gap-3 pl-14 py-2 !rounded-none no-underline ${isExactActive('/admin/positions') ? 'sub-menu-active' : 'text-white/70'}`}>
-                <CircleDot size={16} />
-                <span className="text-[0.95rem]">Positions</span>
+              <Link to="/admin/positions" className={`sub-menu-link flex items-center gap-3 pl-7 py-1.5 !rounded-none no-underline ${isExactActive('/admin/positions') ? 'sub-menu-active' : 'text-white/70'}`}>
+                <CircleDot size={14} className="opacity-50" />
+                <span className="text-[0.9rem]">Positions</span>
               </Link>
             </div>
           )}
-
-          {/* COLLAPSED POPUP */}
-          {isCollapsed && (
-            <FloatingPopup 
-              title="Referentials" 
-              links={[
-                { label: 'Departments', to: '/admin/departments' },
-                { label: 'Positions', to: '/admin/positions' }
-              ]} 
-            />
-          )}
+          {isCollapsed && <FloatingPopup title="Referentials" links={[{ label: 'Departments', to: '/admin/departments' }, { label: 'Positions', to: '/admin/positions' }]} />}
         </div>
 
       </nav>

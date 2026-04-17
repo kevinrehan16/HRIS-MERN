@@ -12,7 +12,9 @@ import Employees from './pages/admin/employees/Employees';
 import Attendance from './pages/admin/attendance/Attendance';
 import Department from './pages/admin/referentials/Department';
 import Position from './pages/admin/referentials/Position';
-import Overtimerequest from './pages/admin/approvals/Overtimerequest';
+import OvertimeRequest from './pages/admin/approvals/OvertimeRequest';
+import AttendanceCorrection from './pages/admin/approvals/AttendanceCorrection';
+import LeaveRequest from './pages/admin/approvals/LeaveRequest';
 
 import FaceClock from './components/modals/FaceClockModal';
 
@@ -82,7 +84,9 @@ function App() {
            <Route path="attendance" element={<Attendance />} />
            <Route path="departments" element={<Department />} />
            <Route path="positions" element={<Position />} />
-           <Route path="overtime-requests" element={<Overtimerequest />} />
+           <Route path="overtime-requests" element={<OvertimeRequest />} />
+           <Route path="attendance-corrections" element={<AttendanceCorrection />} />
+           <Route path="leave-requests" element={<LeaveRequest />} />
         </Route>
 
         {/* EMPLOYEE ROUTES */}

@@ -3,13 +3,13 @@ import { ClockArrowUp, Calendar, Plus, SearchIcon, X, Check } from 'lucide-react
 
 import { useAttendance } from '../../../hooks/useAttendance';
 
-import { formatDate, getInitials, formatShiftSchedule } from '../../../utils/formatters';
+import { formatDate, getInitials, formatShiftSchedule, formatDisplayTime } from '../../../utils/formatters';
 import { notificationService } from '../../../utils/notifications';
 
 import TableSkeleton from '../../../components/common/TableSkeleton'
 import PageHeader from '../../../components/common/PageHeader';
 
-const Overtimerequest = () => {
+const OvertimeRequest = () => {
   const { overtimeRequestsQuery, updateOvertimeStatusMutation } = useAttendance();
   const { data: overtimeRequests, isLoading } = overtimeRequestsQuery;
 
@@ -60,11 +60,11 @@ const Overtimerequest = () => {
   };
 
   return (
-    <div className="bg-[#f2f5f9]">
+    <div className="bg-[#f2f5f9] min-h-full flex flex-col">
       <PageHeader 
         title="Overtime Requests" 
         subtitle="Manage and review pending overtime requests"
-        titleIcon={<ClockArrowUp size={35} className="text-white" />}
+        titleIcon={<ClockArrowUp size={25} className="text-white" />}
       >
         <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-4 py-2 text-white">
           <Calendar size={18} />
@@ -73,12 +73,12 @@ const Overtimerequest = () => {
       </PageHeader>
 
       {/* MAIN BODY CONTAINER */}
-      <div className="px-6 pb-10">
+      <div className="px-6 pb-6 flex-1 flex flex-col">
         
         {/* ANG MALAKING CARD NA NAKAPATONG */}
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 -mt-28 p-2 min-h-[462px]">
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 -mt-28 flex-1 flex flex-col min-h-[450px] overflow-hidden">
           {/* TOOLBAR */}
-          <div className="p-2 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/30">
+          <div className="p-2 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/30 shrink-0">
             <div className="relative flex-1 max-w-md">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
@@ -98,11 +98,11 @@ const Overtimerequest = () => {
           </div>
 
           {/* TABLE */}
-          <div className="relative overflow-y-auto overflow-x-auto h-[310px] custom-scrollbar border-b border-slate-100">
+          <div className="flex-1 relative overflow-auto custom-scrollbar border-b border-slate-100 min-h-0">
             <table className="w-full text-left border-separate border-spacing-0">
               <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
                 <tr>
-                  <th style={{ width: '30%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Employee</th>
+                  <th style={{ width: '30%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Employee Information</th>
                   <th style={{ width: '20%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Date & Schedule</th>
                   <th style={{ width: '25%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Actual Logs</th>
                   <th style={{ width: '15%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">OT Duration</th>
@@ -148,14 +148,14 @@ const Overtimerequest = () => {
                           <div className="flex flex-col">
                             <span className="text-[9px] uppercase font-black text-slate-300">In</span>
                             <span className="text-sm font-bold text-slate-600">
-                              {record.timeIn ? new Date(record.timeIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                              {formatDisplayTime(record.timeIn) ? formatDisplayTime(record.timeIn) : '--:--'}
                             </span>
                           </div>
                           <div className="h-8 w-[1px] bg-slate-300"></div>
                           <div className="flex flex-col">
                             <span className="text-[9px] uppercase font-black text-blue-400">Out</span>
                             <span className="text-sm font-black text-blue-700">
-                              {record.timeOut ? new Date(record.timeOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                              {formatDisplayTime(record.timeOut) ? formatDisplayTime(record.timeOut) : '--:--'}
                             </span>
                           </div>
                         </div>
@@ -226,7 +226,7 @@ const Overtimerequest = () => {
           </div>
 
           {/* PAGINATION */}
-          <div className="px-4 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <div className="px-4 py-2 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest shrink-0">
             <span>
               {/* Showing {employees.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination?.total || 0)} of {pagination?.total || 0} Employees */}
             </span>
@@ -289,4 +289,4 @@ const Overtimerequest = () => {
   );
 };
 
-export default Overtimerequest;
+export default OvertimeRequest;

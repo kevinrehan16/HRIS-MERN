@@ -10,28 +10,29 @@ generator client {
 }
 
 model Employee {
-  id              Int             @id @default(autoincrement())
-  employeeId      String          @unique // Halimbawa: HRIS-2024-001
-  firstName       String
-  lastName        String
-  email           String          @unique
-  password        String
-  faceDescriptor  String?         @db.LongText // Dito ise-save ang 128-digit numeric array
-  role            Role            @default(EMPLOYEE) // <--- System Permission
-  departmentId    Int?            // <--- Pag may ID it means One-To-One Relationship
-  department      Department?     @relation(fields: [departmentId], references: [id])
-  positionId      Int?            // <--- Pag may ID it means One-To-One Relationship
-  position        Position?       @relation(fields: [positionId], references: [id])
-  attendances     Attendance[]    // <--- Pag WALANG ID it means One-To-Many Relationship
-  scheduleId      Int?            // <--- Pag may ID it means One-To-One Relationship
-  schedule        Schedule?       @relation(fields: [scheduleId], references: [id])
-  leaveCredits    Int             @default(15)
-  leaves          LeaveRequest[]  // <--- Pag WALANG ID it means One-To-Many Relationship
-  basicSalary     Float           @default(0.0) // Monthly Basic Salary
-  payrolls        Payroll[]       // <--- Pag WALANG ID it means One-To-Many Relationship
-  status          EmployeeStatus  @default(PROBATIONARY)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id                    Int             @id @default(autoincrement())
+  employeeId            String          @unique // Halimbawa: HRIS-2024-001
+  firstName             String
+  lastName              String
+  email                 String          @unique
+  password              String
+  faceDescriptor        String?         @db.LongText // Dito ise-save ang 128-digit numeric array
+  role                  Role            @default(EMPLOYEE) // <--- System Permission
+  departmentId          Int?            // <--- Pag may ID it means One-To-One Relationship
+  department            Department?     @relation(fields: [departmentId], references: [id])
+  positionId            Int?            // <--- Pag may ID it means One-To-One Relationship
+  position              Position?       @relation(fields: [positionId], references: [id])
+  attendances           Attendance[]    // <--- Pag WALANG ID it means One-To-Many Relationship
+  scheduleId            Int?            // <--- Pag may ID it means One-To-One Relationship
+  schedule              Schedule?       @relation(fields: [scheduleId], references: [id])
+  leaveCredits          Int             @default(15)
+  leaves                LeaveRequest[]  // <--- Pag WALANG ID it means One-To-Many Relationship
+  basicSalary           Float           @default(0.0) // Monthly Basic Salary
+  payrolls              Payroll[]       // <--- Pag WALANG ID it means One-To-Many Relationship
+  status                EmployeeStatus  @default(PROBATIONARY)
+  attendanceCorrections AttendanceCorrection[]
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 }
 
 model Department {
@@ -76,6 +77,7 @@ model Attendance {
   // Relations
   employeeId       Int
   employee         Employee         @relation(fields: [employeeId], references: [id])
+  corrections      AttendanceCorrection[]
 
   // Enterprise Rule: Isang attendance record lang per employee per day
   @@unique([employeeId, date]) 
@@ -146,6 +148,34 @@ model Holiday {
   createdAt   DateTime @default(now())
 }
 
+model AttendanceCorrection {
+  id               Int            @id @default(autoincrement())
+  attendanceId     Int
+  employeeId       Int
+  
+  // Anong type ng correction?
+  type             CorrectionType @default(BOTH)
+  
+  // Ang bagong oras na nire-request
+  requestedTimeIn  DateTime?
+  requestedTimeOut DateTime?
+  
+  // Bakit kailangan itama?
+  reason           String         @db.Text
+  
+  // Status ng request (Gagamit ng Enum)
+  status           RequestStatus  @default(PENDING)
+  
+  adminRemarks     String?        @db.Text
+  
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relations
+  attendance       Attendance     @relation(fields: [attendanceId], references: [id])
+  employee         Employee       @relation(fields: [employeeId], references: [id])
+}
+
 // ENUMS HERE...
 enum PayrollStatus {
   PENDING
@@ -193,4 +223,18 @@ enum OTStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// Status para sa mismong Correction Request
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Para malaman kung anong part ang gustong itama (Optional pero helpful)
+enum CorrectionType {
+  TIME_IN
+  TIME_OUT
+  BOTH
 }

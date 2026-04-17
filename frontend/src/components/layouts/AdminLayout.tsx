@@ -16,7 +16,7 @@ const AdminLayout = () => {
       <Sidebar isCollapsed={isCollapsed} logout={logout} />
 
       {/* 2. MAIN BODY WRAPPER */}
-      <div className="flex flex-col flex-grow-1 min-vw-0">
+      <div className="flex flex-col flex-grow-1 min-vw-0 h-screen">
         
         {/* 3. TOPBAR */}
         <Topbar 
@@ -26,12 +26,15 @@ const AdminLayout = () => {
         />
 
         {/* 4. MAIN CONTENT (SCROLLABLE) */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-0">
-          <div className="container-fluid p-0">
+        {/* Pinalitan ang overflow-y-auto ng overflow-hidden para ang Card sa loob ang mag-scroll */}
+        <main className="flex-1 overflow-hidden p-0 bg-gray-100 flex flex-col">
+          <div className="flex-1 overflow-hidden">
             <Outlet />
           </div>
-          <Footer />
         </main>
+        
+        {/* 5. FOOTER */}
+        <Footer />
         
       </div>
     </div>

@@ -65,3 +65,20 @@ export const formatShiftSchedule = (shiftString: string | undefined | null): str
   // Kung single time lang ang pinasa
   return formatTime(shiftString);
 };
+
+export const formatDisplayTime = (dateString: string | null) => {
+  if (!dateString) return "---";
+  
+  const date = new Date(dateString);
+  
+  // Imbes na toLocaleTimeString, gamitin natin ang Manual Getters 
+  // para makuha ang "Raw" value na sinave natin sa DB
+  let hours = date.getUTCHours(); // Gamitin ang UTC para hindi mag-offset
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+  hours = hours % 12;
+  hours = hours ? hours : 12; // conversion ng 0 to 12
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+};

@@ -22,15 +22,15 @@ const Position = () => {
       <PageHeader 
         title="Positions" 
         subtitle="Centralized directory for all position records."
-        titleIcon={<BriefcaseBusiness size={35} className="text-white" />}
+        titleIcon={<BriefcaseBusiness size={25} className="text-white" />}
       >
         <button className="flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-all">
           <Download size={18} /> <span className="text-sm font-semibold">Export CSV</span>
         </button>
       </PageHeader>
 
-      <div className="px-6 pb-10">
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 -mt-28 p-2 min-h-[462px]">
+      <div className="px-6 pb-6">
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 -mt-28 min-h-[400px]">
           {/* TOOLBAR */}
           <div className="p-2 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/30">
             <div className="relative flex-1 max-w-md">
@@ -54,7 +54,7 @@ const Position = () => {
           </div>
 
           {/* TABLE */}
-          <div className="relative overflow-y-auto overflow-x-auto h-[310px] custom-scrollbar border-b border-slate-100">
+          <div className="relative overflow-y-auto overflow-x-auto h-[370px] custom-scrollbar border-b border-slate-100">
             <table className="w-full text-left border-separate border-spacing-0">
               <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
                 <tr>
@@ -125,7 +125,7 @@ const Position = () => {
           </div>
 
           {/* PAGINATION */}
-          <div className="px-4 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <div className="px-4 py-2 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest">
             <span>
               {/* Showing {employees.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination?.total || 0)} of {pagination?.total || 0} Employees */}
             </span>

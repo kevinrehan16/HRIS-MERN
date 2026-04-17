@@ -10,4 +10,5 @@ export const ROUTES = {
   PAYROLL: `${API_PREFIX}/payroll`,
   POSITIONS: `${API_PREFIX}/positions`,
   HOLIDAYS: `${API_PREFIX}/holidays`,
+  ATTENDANCE_CORRECTION: `${API_PREFIX}/attendance-correction`,
 };

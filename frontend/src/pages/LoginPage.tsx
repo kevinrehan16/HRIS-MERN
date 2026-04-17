@@ -45,8 +45,8 @@ const LoginPage = () => {
       <div className="card shadow-lg border-0" style={{ maxWidth: '400px', width: '100%' }}>
         <div className="card-body p-5">
           <div className="text-center mb-4">
-            <div className="bg-fuchsia-200 text-white d-inline-block p-3 rounded-circle mb-3">
-              <img src="/images/hris_logo.png" alt="" />
+            <div className="bg-fuchsia-200 text-white d-inline-block p-1 rounded-circle mb-3">
+              <img src="/images/logohris.png" alt="HRIS Logo" />
             </div>
             <p className="text-muted">Enter your credentials to access the system</p>
           </div>

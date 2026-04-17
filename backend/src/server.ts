@@ -18,6 +18,7 @@ import leaveRoutes from './routes/leave.routes.js';
 import payrollRoutes from './routes/payroll.routes.js';
 import positionRoutes from './routes/position.routes.js';
 import holidayRoutes from './routes/holiday.routes.js';
+import attendanceCorrectionRoutes from './routes/attendanceCorrection.routes.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use(ROUTES.LEAVE, leaveRoutes);
 app.use(ROUTES.PAYROLL, payrollRoutes);
 app.use(ROUTES.POSITIONS, positionRoutes);
 app.use(ROUTES.HOLIDAYS, holidayRoutes);
+app.use(ROUTES.ATTENDANCE_CORRECTION, attendanceCorrectionRoutes);
 
 
 

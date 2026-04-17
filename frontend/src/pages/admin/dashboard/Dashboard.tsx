@@ -7,7 +7,7 @@ const Dashboard = () => {
       <PageHeader 
         title="Dashboard" 
         subtitle="Dashboard overview and content summary"
-        titleIcon={<LayoutDashboard size={35} className="text-white" />}
+        titleIcon={<LayoutDashboard size={25} className="text-white" />}
       >
         <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-4 py-2 text-white">
           <Calendar size={18} />
@@ -16,10 +16,10 @@ const Dashboard = () => {
       </PageHeader>
 
       {/* MAIN BODY CONTAINER */}
-      <div className="px-6 pb-10">
+      <div className="px-6 pb-6">
         
         {/* ANG MALAKING CARD NA NAKAPATONG */}
-        <div className="bg-white rounded-md shadow-xl border border-slate-200 -mt-28 p-2 min-h-[462px]">
+        <div className="bg-white rounded-md shadow-xl border border-slate-200 -mt-28 min-h-[400px]">
           <h2 className="text-xl font-bold mb-6 text-slate-800">Content goes here...</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

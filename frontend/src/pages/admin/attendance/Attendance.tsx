@@ -4,7 +4,7 @@ import PageHeader from '../../../components/common/PageHeader';
 
 import { useAttendance } from '../../../hooks/useAttendance';
 import TableSkeleton from '../../../components/common/TableSkeleton';
-import { getInitials } from '../../../utils/formatters';
+import { formatDisplayTime, getInitials } from '../../../utils/formatters';
 
 const Attendance = () => {
 
@@ -19,7 +19,7 @@ const Attendance = () => {
       <PageHeader 
         title="Attendance" 
         subtitle="Attendance overview and content summary"
-        titleIcon={<ClipboardClock size={35} className="text-white" />}
+        titleIcon={<ClipboardClock size={25} className="text-white" />}
       >
         <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg px-4 py-2 text-white">
           <Calendar size={18} />
@@ -28,10 +28,10 @@ const Attendance = () => {
       </PageHeader>
 
       {/* MAIN BODY CONTAINER */}
-      <div className="px-6 pb-10">
+      <div className="px-6 pb-6">
         
         {/* ANG MALAKING CARD NA NAKAPATONG */}
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 -mt-28 p-2 min-h-[462px]">
+        <div className="bg-white rounded-xl shadow-xl border border-slate-200 -mt-28 min-h-[400px]">
           {/* TOOLBAR */}
           <div className="p-2 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/30">
             <div className="relative flex-1 max-w-md">
@@ -53,11 +53,11 @@ const Attendance = () => {
           </div>
 
           {/* TABLE */}
-          <div className="relative overflow-y-auto overflow-x-auto h-[310px] custom-scrollbar border-b border-slate-100">
+          <div className="relative overflow-y-auto overflow-x-auto h-[370px] custom-scrollbar border-b border-slate-100">
             <table className="w-full text-left border-separate border-spacing-0">
               <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
                 <tr>
-                  <th style={{ width: '40%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Employee Informations</th>
+                  <th style={{ width: '40%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Employee Information</th>
                   <th style={{ width: '25%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Clock In</th>
                   <th style={{ width: '25%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Clock Out</th>
                   <th style={{ width: '25%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Status</th>
@@ -88,34 +88,54 @@ const Attendance = () => {
                             </div>
                           </div>
                         </td>
+                        {/* --- CLOCK IN COLUMN --- */}
                         <td className="px-6 py-4 whitespace-nowrap border-r border-slate-50">
                           <div className="flex items-center gap-3 group">
-                            <div className="flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-                              <span className="text-[10px] font-bold uppercase leading-none">
-                                {record.timeIn ? new Date(record.timeIn).toLocaleString('en-US', { month: 'short' }) : '---'}
-                              </span>
-                              <span className="text-sm font-black">
-                                {record.timeIn ? new Date(record.timeIn).getDate() : '--'}
-                              </span>
-                            </div>
-                            
-                            <div className="flex flex-col">
-                              <div className="text-sm font-bold text-slate-700">
-                                {record.timeIn ? new Date(record.timeIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "---"}
+                            {record.status !== "ABSENT" ? (
+                              <>
+                                {/* Calendar Style Date Block */}
+                                <div className="flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
+                                  <span className="text-[10px] font-bold uppercase leading-none">
+                                    {record.timeIn ? new Date(record.timeIn).toLocaleString('en-US', { month: 'short' }) : '---'}
+                                  </span>
+                                  <span className="text-sm font-black">
+                                    {record.timeIn ? new Date(record.timeIn).getDate() : '--'}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex flex-col">
+                                  <div className="text-sm font-bold text-slate-700">
+                                    {record.timeIn ? formatDisplayTime(record.timeIn) : "---"}
+                                  </div>
+                                  {record.lateMinutes > 0 ? (
+                                    <span className="text-[10px] font-semibold text-amber-600 px-1.5 py-0.5 bg-amber-50 rounded-md w-fit">
+                                      {record.lateMinutes}m Late
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400">Regular Entry</span>
+                                  )}
+                                </div>
+                              </>
+                            ) : (
+                              /* Minimalist Absent Placeholder */
+                              <div className="flex items-center gap-2 px-2 py-1 bg-slate-50/50 rounded-md border border-slate-100 ml-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">No Record</span>
                               </div>
-                              {record.lateMinutes > 0 ? (
-                                <span className="text-[10px] font-semibold text-amber-600 px-1.5 py-0.5 bg-amber-50 rounded-md w-fit">
-                                  {record.lateMinutes}m Late
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-slate-400">Regular Entry</span>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </td>
+
+                        {/* --- CLOCK OUT COLUMN --- */}
                         <td className="px-6 py-4 whitespace-nowrap border-l border-slate-50">
                           <div className="flex items-center gap-3 group">
-                            {record.timeOut ? (
+                            {record.status === "ABSENT" ? (
+                              /* Minimalist Absent Placeholder */
+                              <div className="flex items-center gap-2 px-2 py-1 bg-slate-50/50 rounded-md border border-slate-100 ml-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">No Record</span>
+                              </div>
+                            ) : record.timeOut ? (
                               <>
                                 {/* Calendar Style Date Block */}
                                 <div className={`flex flex-col items-center justify-center w-10 h-10 rounded-xl transition-colors ${
@@ -131,7 +151,7 @@ const Attendance = () => {
 
                                 <div className="flex flex-col">
                                   <div className={`text-sm font-bold ${record.undertimeMinutes > 0 ? 'text-red-700' : 'text-slate-700'}`}>
-                                    {new Date(record.timeOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {formatDisplayTime(record.timeOut)}
                                   </div>
                                   
                                   {/* Undertime or OT Badge */}
@@ -151,7 +171,7 @@ const Attendance = () => {
                                 </div>
                               </>
                             ) : (
-                              /* Currently Working Status */
+                              /* Currently Working / On Duty Status */
                               <div className="flex items-center gap-2 text-slate-400 italic text-sm ml-2">
                                 <span className="relative flex h-2 w-2">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -191,7 +211,7 @@ const Attendance = () => {
           </div>
 
           {/* PAGINATION */}
-          <div className="px-4 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <div className="px-4 py-2 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest">
             <span>
               {/* Showing {employees.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination?.total || 0)} of {pagination?.total || 0} Employees */}
             </span>
