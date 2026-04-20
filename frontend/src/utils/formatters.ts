@@ -82,3 +82,56 @@ export const formatDisplayTime = (dateString: string | null) => {
   
   return `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
 };
+
+/**
+ * Kalkulahin ang bilang ng araw sa pagitan ng dalawang dates (Inclusive)
+ * Example: "2026-04-15" to "2026-04-17" -> 3 Days
+ */
+/**
+ * Kalkulahin ang bilang ng araw (Business Days lang - No Sat/Sun)
+ * Example: Friday to Monday -> 2 Days (Fri, Mon)
+ */
+export const calculateLeaveDays = (startDate: string | Date, endDate: string | Date): number => {
+  if (!startDate || !endDate) return 0;
+  
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Siguraduhin na midnight ang start para walang butal sa oras
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  let count = 0;
+  const current = new Date(start);
+
+  // I-loop ang bawat araw mula start hanggang end
+  while (current <= end) {
+    const dayOfWeek = current.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Isama lang sa count kung hindi 0 (Linggo) at hindi 6 (Sabado)
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      count++;
+    }
+
+    // Move to the next day
+    current.setDate(current.getDate() + 1);
+  }
+
+  return count;
+};
+
+/**
+ * Kunin ang Month Short name (e.g., "Apr")
+ */
+export const getMonthShort = (dateString: string | Date): string => {
+  if (!dateString) return '---';
+  return new Date(dateString).toLocaleString('en-US', { month: 'short' });
+};
+
+/**
+ * Kunin ang Day Number (e.g., 15)
+ */
+export const getDayNumber = (dateString: string | Date): string => {
+  if (!dateString) return '--';
+  return new Date(dateString).getDate().toString();
+};

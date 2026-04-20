@@ -46,7 +46,7 @@ export const login = catchAsync(async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
     sameSite: 'lax', // Proteksyon sa CSRF
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    maxAge: 24 * 60 * 60 * 1000, // 1 day tatagal ang token sa cookie browser. kaya auto login w/in that 1 day
   });
 
   // Huwag nang ibalik ang token sa JSON body para sa security

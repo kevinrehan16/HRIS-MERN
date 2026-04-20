@@ -1,7 +1,6 @@
 import prisma from "../config/db.js";
 
 export const getAdminAttendanceLogs = async (date?: string) => {
-  // Kung walang pinasang date, default tayo sa current date today
   const targetDate = date ? new Date(date) : new Date();
   
   const startOfDay = new Date(targetDate);
@@ -10,20 +9,15 @@ export const getAdminAttendanceLogs = async (date?: string) => {
   const endOfDay = new Date(targetDate);
   endOfDay.setUTCHours(23, 59, 59, 999);
 
-  return await prisma.attendance.findMany({
+  const logs = await prisma.attendance.findMany({
     where: {
       OR: [
         {
-          // Condition 1: Lahat ng records sa piniling petsa
-          date: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          date: { gte: startOfDay, lte: endOfDay },
         },
         {
-          // Condition 2: Lahat ng "Active" (Naka-Time In pero walang Time Out)
-          // Kahit anong petsa pa sila nag-Time In, lilitaw sila rito
-          timeOut: null, 
+          timeOut: null,
+          status: { not: 'ABSENT' } // IWASAN: Huwag isama ang absent sa "Active" pool
         }
       ],
     },
@@ -34,14 +28,51 @@ export const getAdminAttendanceLogs = async (date?: string) => {
           firstName: true,
           lastName: true,
           employeeId: true,
-          position: {
-            select: { title: true }
-          }
+          schedule: {
+            select: {
+              name: true,
+              shiftStart: true, // e.g., "08:00 AM"
+              shiftEnd: true    // e.g., "05:00 PM"
+            }
+          },
+          position: { select: { title: true } }
         },
       },
     },
-    orderBy: {
-      timeIn: 'desc', 
-    },
+    orderBy: { timeIn: 'desc' },
+  });
+
+  const enrichedLogs = logs.map(log => {
+    let computedStatus = "COMPLETED";
+    
+    // Check natin kung pumasok talaga (PRESENT o LATE)
+    const isPresent = log.status === 'PRESENT' || log.status === 'LATE';
+    const logDate = new Date(log.date).toDateString(); // Mas safe gamitin yung 'date' column
+    const today = new Date().toDateString();
+
+    if (log.status === 'ABSENT') {
+      computedStatus = "ABSENT";
+    } else if (log.status === 'ON_LEAVE') {
+      computedStatus = "ON_LEAVE";
+    } else if (!log.timeOut && isPresent) {
+      // Dito papasok yung Active monitoring
+      computedStatus = logDate !== today ? "MISSING_OUT" : "ACTIVE";
+    }
+
+    return {
+      ...log,
+      computedStatus, 
+    };
+  });
+
+  return enrichedLogs.sort((a, b) => {
+    const priority: Record<string, number> = { 
+      "MISSING_OUT": 1, 
+      "ACTIVE": 2, 
+      "COMPLETED": 3, 
+      "ABSENT": 4, 
+      "ON_LEAVE": 5 
+    };
+    return (priority[a.computedStatus] || 99) - (priority[b.computedStatus] || 99);
   });
 };

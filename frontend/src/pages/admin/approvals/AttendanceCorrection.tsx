@@ -3,6 +3,7 @@ import { FilePenLine, Calendar, Plus, SearchIcon, Download, Check, X, LogOut, Lo
 
 import PageHeader from '../../../components/common/PageHeader';
 import TableSkeleton from '../../../components/common/TableSkeleton';
+import NoDataFound from '../../../components/common/NoDataFound';
 
 import { useCorrections } from '../../../hooks/useCorrection';
 import { formatDisplayTime, formatDate } from '../../../utils/formatters';
@@ -114,13 +115,19 @@ const AttendanceCorrection = () => {
                   </tr>
                 ) : corrections.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-10 text-slate-500 font-medium">No correction requests found.</td>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <NoDataFound 
+                        messageIcon={<FilePenLine size={48} className="opacity-20" />}
+                        message='No pending attendance correction requests'
+                        subMessage='Everything is up to date!'
+                      />
+                    </td>
                   </tr>
                 ) : (
                   corrections.map(correction => (
                     <tr key={correction.id} className="hover:bg-slate-50/80 transition-all border-b border-slate-100">
                       {/* 1. EMPLOYEE */}
-                      <td className="px-4 py-2">
+                      <td className="px-4 py-1.5">
                         <div className="flex items-center gap-2">
                           <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm text-xs">
                             {correction.employee.firstName[0]}{correction.employee.lastName[0]}
@@ -137,12 +144,12 @@ const AttendanceCorrection = () => {
                       </td>
 
                       {/* 2. LOG CHANGES (COMPARISON) */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-1.5">
                         <div className="flex flex-col gap-2">
                           {/* TIME IN */}
                           {correction.requestedTimeIn && (
                             <div className="flex items-center gap-2">
-                              <div className="p-1 bg-blue-50 rounded-md text-blue-600 border border-blue-100">
+                              <div className="p-1 bg-emerald-50 rounded-md text-emerald-600 border border-emerald-100">
                                 <LogIn size={12} strokeWidth={3} />
                               </div>
                               <div className="flex items-center gap-1.5 text-[11px]">
@@ -156,7 +163,7 @@ const AttendanceCorrection = () => {
                           {/* TIME OUT */}
                           {correction.requestedTimeOut && (
                             <div className="flex items-center gap-2">
-                              <div className="p-1 bg-purple-50 rounded-md text-purple-600 border border-purple-100">
+                              <div className="p-1 bg-rose-50 rounded-md text-rose-600 border border-rose-100">
                                 <LogOut size={12} strokeWidth={3} />
                               </div>
                               <div className="flex items-center gap-1.5 text-[11px]">
@@ -170,26 +177,25 @@ const AttendanceCorrection = () => {
                       </td>
 
                       {/* 3. REASON */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-1.5">
                         <div className="text-[13px] text-slate-500 italic line-clamp-1 max-w-[300px] cursor-help" title={correction.reason}>
                           "{correction.reason}"
                         </div>
                       </td>
 
                       {/* 4. TYPE/BADGE - Dito natin ilalagay yung Correction Type */}
-                      <td className="px-4 py-3 text-center">
-                        <span className={`
-                          px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border
-                          ${correction.type === 'TIME_IN' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
-                            correction.type === 'TIME_OUT' ? 'bg-purple-50 text-purple-600 border-purple-100' : 
-                            'bg-slate-50 text-slate-600 border-slate-200'}
-                        `}>
+                      <td className="px-4 py-1.5 text-center">
+                        <div className={`text-[10px] font-black uppercase tracking-widest text-center py-1 rounded-md border-b-2 ${
+                          correction.type === 'TIME_IN' ? 'text-emerald-600 border-emerald-200 bg-emerald-50/30' :
+                          correction.type === 'TIME_OUT' ? 'text-rose-600 border-rose-200 bg-rose-50/30' :
+                          'text-slate-400 border-slate-200 bg-slate-50/30'
+                        }`}>
                           {correction.type.replace('_', ' ')}
-                        </span>
+                        </div>
                       </td>
 
                       {/* 5. SUBMITTED DATE */}
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-1.5">
                         <div className="flex flex-col">
                           <span className="text-[13px] font-medium text-slate-600">
                             {formatDate(correction.createdAt)}
@@ -201,7 +207,7 @@ const AttendanceCorrection = () => {
                       </td>
 
                       {/* 6. ACTIONS */}
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-1.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button 
                             onClick={() => handleApprove(correction)}

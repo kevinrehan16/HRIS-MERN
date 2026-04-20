@@ -7,11 +7,17 @@ import { sendResponse } from '../utils/sendResponse.js';
 import { AppError } from '../utils/appError.js';
 
 export const getCorrectionRequests = catchAsync(async (req, res) => {
-  const { status = 'PENDING' } = req.query; // Default ay PENDING lang muna
+  const { status = 'PENDING' } = req.query;
 
   const requests = await prisma.attendanceCorrection.findMany({
     where: {
       status: status as any,
+      // Sa TypeScript, ganito ang "Relation must exist" check
+      attendance: {
+        is: {
+          id: { not: undefined } // O kaya kahit anong field na sure na meron
+        }
+      }
     },
     include: {
       employee: {
@@ -26,7 +32,6 @@ export const getCorrectionRequests = catchAsync(async (req, res) => {
           timeIn: true,
           timeOut: true,
           date: true,
-          // Pwede mo ring isama dito yung Shift schedule kung kailangan
         }
       }
     },
@@ -35,7 +40,7 @@ export const getCorrectionRequests = catchAsync(async (req, res) => {
     }
   });
 
-  sendResponse(res, 200, requests, `Fetched ${requests.length} correction requests with status ${status}`);
+  sendResponse(res, 200, requests, `Fetched ${requests.length} correction requests`);
 });
 
 // sample logic for creating a request
@@ -43,10 +48,21 @@ export const createCorrectionRequest = catchAsync(async (req, res) => {
   const { attendanceId, requestedTimeIn, requestedTimeOut, reason } = req.body;
   const employeeId = req.user.id; // Galing sa auth middleware
 
+  let correctionType;
+
+  if (requestedTimeIn && requestedTimeOut) {
+    correctionType = 'BOTH';
+  } else if (requestedTimeIn) {
+    correctionType = 'TIME_IN';
+  } else if (requestedTimeOut) {
+    correctionType = 'TIME_OUT';
+  }
+
   const newRequest = await prisma.attendanceCorrection.create({
     data: {
       attendanceId,
       employeeId,
+      type: correctionType,
       requestedTimeIn: requestedTimeIn ? new Date(requestedTimeIn) : null,
       requestedTimeOut: requestedTimeOut ? new Date(requestedTimeOut) : null,
       reason,

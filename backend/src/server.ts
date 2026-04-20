@@ -14,7 +14,8 @@ import authRoutes from './routes/auth.routes.js';
 import employeeRoutes from './routes/employee.routes.js';
 import departmentRoutes from './routes/department.routes.js';
 import attendanceRoutes from './routes/attendance.routes.js';
-import leaveRoutes from './routes/leave.routes.js';
+import leaveRoutes from './routes/leave.routes.js'
+import leaveRequestRoutes from './routes/leaveRequest.routes.js';
 import payrollRoutes from './routes/payroll.routes.js';
 import positionRoutes from './routes/position.routes.js';
 import holidayRoutes from './routes/holiday.routes.js';
@@ -45,6 +46,7 @@ app.use(ROUTES.EMPLOYEES, employeeRoutes);
 app.use(ROUTES.DEPARTMENTS, departmentRoutes);
 app.use(ROUTES.ATTENDANCE, attendanceRoutes);
 app.use(ROUTES.LEAVE, leaveRoutes);
+app.use(ROUTES.LEAVE_REQUEST, leaveRequestRoutes);
 app.use(ROUTES.PAYROLL, payrollRoutes);
 app.use(ROUTES.POSITIONS, positionRoutes);
 app.use(ROUTES.HOLIDAYS, holidayRoutes);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarDays, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronRight, MonitorCheck } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarCog, CircleDot, ClipboardClock, Wallet, FolderCog, ChevronRight, MonitorCheck } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const location = useLocation();
@@ -104,7 +104,7 @@ const Sidebar = ({ isCollapsed }: { isCollapsed: boolean }) => {
           { to: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
           { to: "/admin/employees", icon: Users, label: "Employees" },
           { to: "/admin/attendance", icon: ClipboardClock, label: "Attendance" },
-          { to: "/admin/leaves", icon: CalendarDays, label: "Leaves" },
+          { to: "/admin/leaves", icon: CalendarCog, label: "Leaves" },
           { to: "/admin/payroll", icon: Wallet, label: "Payroll" },
         ].map((item) => (
           <div key={item.to} className="relative group/item">

@@ -7,6 +7,7 @@ export const ROUTES = {
   DEPARTMENTS: `${API_PREFIX}/departments`,
   ATTENDANCE: `${API_PREFIX}/attendance`,
   LEAVE: `${API_PREFIX}/leave`,
+  LEAVE_REQUEST: `${API_PREFIX}/leave-request`,
   PAYROLL: `${API_PREFIX}/payroll`,
   POSITIONS: `${API_PREFIX}/positions`,
   HOLIDAYS: `${API_PREFIX}/holidays`,

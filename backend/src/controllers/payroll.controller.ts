@@ -7,19 +7,24 @@ import { AppError } from '../utils/AppError.js';
 import { calculateSSS, calculatePhilHealth, calculatePagIBIG, calculateWithholdingTax } from '../services/statutory.service.js';
 
 // Helper function para sa Night Diff (10PM - 6AM)
-const getNightDiffMinutes = (timeIn: Date, timeOut: Date): number => {
-  let nightMins = 0;
-  let current = new Date(timeIn);
-  const end = new Date(timeOut);
+export const getNightDiffMinutes = (timeIn: Date, timeOut: Date): number => {
+  let nightDiffMins = 0;
+  let current = new Date(timeIn.getTime());
 
-  while (current < end) {
-    const hour = current.getHours();
+  // Loop bawat minuto mula Time In hanggang Time Out
+  while (current < timeOut) {
+    const hour = current.getHours(); // Local hour ang kukunin dito
+
+    // Check kung ang oras ay nasa pagitan ng 10PM (22) at 6AM (6)
     if (hour >= 22 || hour < 6) {
-      nightMins++;
+      nightDiffMins++;
     }
+    
+    // Move to the next minute
     current.setMinutes(current.getMinutes() + 1);
   }
-  return nightMins;
+
+  return nightDiffMins;
 };
 
 export const generatePayroll = catchAsync(async (req: Request, res: Response) => {
@@ -62,24 +67,27 @@ export const generatePayroll = catchAsync(async (req: Request, res: Response) =>
     let totalNightDiffMins = 0, daysPresent = 0;
 
     emp.attendances.forEach(att => {
-      daysPresent++;
-      totalLateMins += att.lateMinutes || 0;
-      totalUndertimeMins += att.undertimeMinutes || 0;
+    daysPresent++;
+    totalLateMins += att.lateMinutes || 0;
+    totalUndertimeMins += att.undertimeMinutes || 0;
 
-      // Night Diff Calculation (10PM - 6AM)
-      if (att.timeIn && att.timeOut) {
-        totalNightDiffMins += getNightDiffMinutes(new Date(att.timeIn), new Date(att.timeOut));
-      }
+    if (att.timeIn && att.timeOut) {
+      // Kinukuha lang ang string (YYYY-MM-DDTHH:mm:ss) para hindi mag-auto-convert sa UTC
+      const tIn = new Date(att.timeIn.toISOString().split('.')[0]);
+      const tOut = new Date(att.timeOut.toISOString().split('.')[0]);
+      
+      totalNightDiffMins += getNightDiffMinutes(tIn, tOut);
+    }
 
-      if (att.status === 'REST_DAY_WORK') {
-        const stayMins = att.timeIn && att.timeOut 
-          ? Math.floor((new Date(att.timeOut).getTime() - new Date(att.timeIn).getTime()) / 60000) 
-          : 0;
-        totalRestDayMins += stayMins;
-      } else {
-        totalRegularOTMins += att.overtimeMinutes || 0;
-      }
-    });
+    if (att.status === 'REST_DAY_WORK') {
+      const tIn = new Date(att.timeIn.toISOString().split('.')[0]);
+      const tOut = new Date(att.timeOut.toISOString().split('.')[0]);
+      const stayMins = Math.floor((tOut.getTime() - tIn.getTime()) / 60000);
+      totalRestDayMins += stayMins;
+    } else {
+      totalRegularOTMins += att.overtimeMinutes || 0;
+    }
+  });
 
     // C. LEAVES & ABSENCES
     let paidLeaveDays = 0;

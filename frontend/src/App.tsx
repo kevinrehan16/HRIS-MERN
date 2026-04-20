@@ -4,17 +4,21 @@ import { useAuthStore } from './store/authStore';
 import { AuthService } from './services/auth.service';
 import { Spinner } from 'react-bootstrap';
 
-// --- MGA IMPORTS NG PAGES AT LAYOUTS ---
 import LoginPage from './pages/LoginPage';
+// --- MGA IMPORTS NG PAGES AT LAYOUTS NI ADMIN ---
 import AdminLayout from './components/layouts/AdminLayout';
 import Dashboard from './pages/admin/dashboard/Dashboard';
 import Employees from './pages/admin/employees/Employees';
 import Attendance from './pages/admin/attendance/Attendance';
+import Leaves from './pages/admin/leaves/Leaves';
 import Department from './pages/admin/referentials/Department';
 import Position from './pages/admin/referentials/Position';
 import OvertimeRequest from './pages/admin/approvals/OvertimeRequest';
 import AttendanceCorrection from './pages/admin/approvals/AttendanceCorrection';
 import LeaveRequest from './pages/admin/approvals/LeaveRequest';
+
+// --- MGA IMPORTS NG PAGES AT LAYOUTS NI EMPLOYEE ---
+import EmployeeLayout from './components/layouts/EmployeeLayout';
 
 import FaceClock from './components/modals/FaceClockModal';
 
@@ -82,6 +86,7 @@ function App() {
            <Route path="dashboard" element={<Dashboard />} />
            <Route path="employees" element={<Employees />} />
            <Route path="attendance" element={<Attendance />} />
+           <Route path="leaves" element={<Leaves />} />
            <Route path="departments" element={<Department />} />
            <Route path="positions" element={<Position />} />
            <Route path="overtime-requests" element={<OvertimeRequest />} />
@@ -92,7 +97,7 @@ function App() {
         {/* EMPLOYEE ROUTES */}
         <Route 
           path="/portal/*" 
-          element={isAuthenticated && user?.role === 'EMPLOYEE' ? <div>Employee Portal</div> : <Navigate to="/login" />} 
+          element={isAuthenticated && user?.role === 'EMPLOYEE' ? <EmployeeLayout /> : <Navigate to="/login" />} 
         />
 
         {/* FALLBACK */}

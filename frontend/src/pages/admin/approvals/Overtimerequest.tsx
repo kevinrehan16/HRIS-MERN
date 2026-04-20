@@ -8,6 +8,7 @@ import { notificationService } from '../../../utils/notifications';
 
 import TableSkeleton from '../../../components/common/TableSkeleton'
 import PageHeader from '../../../components/common/PageHeader';
+import NoDataFound from '../../../components/common/NoDataFound';
 
 const OvertimeRequest = () => {
   const { overtimeRequestsQuery, updateOvertimeStatusMutation } = useAttendance();
@@ -213,11 +214,12 @@ const OvertimeRequest = () => {
                 ) : (
                   <tr>
                     <td colSpan={5} className="px-4 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
-                        <ClockArrowUp size={48} className="opacity-20" />
-                        <p className="font-medium">No pending overtime requests</p>
-                        <p className="text-xs">Everything is up to date!</p>
-                      </div>
+                      <NoDataFound 
+                        messageIcon={<ClockArrowUp size={48} className="opacity-20" />} 
+                        message='No pending overtime requests'
+                        subMessage='Everything is up to date!'
+                      >
+                      </NoDataFound>
                     </td>
                   </tr>
                 )}
