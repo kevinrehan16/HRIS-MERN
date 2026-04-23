@@ -9,6 +9,7 @@ interface AuthState {
   setAuth: (user: User) => void;
   setInitialLoading: (status: boolean) => void;
   logout: () => void;
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -25,6 +26,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   setInitialLoading: (status) => set({ 
     isInitialLoading: status 
   }),
+
+  checkAuth: async () => {
+    try {
+      set({ isInitialLoading: true });
+      const userData = await AuthService.getProfile(); // Gagamit ng cookie mo
+      set({ user: userData, isAuthenticated: true });
+    } catch (error) {
+      set({ user: null, isAuthenticated: false });
+    } finally {
+      set({ isInitialLoading: false });
+    }
+  },
   
   // Sa loob ng useAuthStore
   logout: async () => {

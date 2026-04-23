@@ -11,6 +11,7 @@ import Dashboard from './pages/admin/dashboard/Dashboard';
 import Employees from './pages/admin/employees/Employees';
 import Attendance from './pages/admin/attendance/Attendance';
 import Leaves from './pages/admin/leaves/Leaves';
+import Payroll from './pages/admin/payroll/Payroll';
 import Department from './pages/admin/referentials/Department';
 import Position from './pages/admin/referentials/Position';
 import OvertimeRequest from './pages/admin/approvals/OvertimeRequest';
@@ -87,6 +88,7 @@ function App() {
            <Route path="employees" element={<Employees />} />
            <Route path="attendance" element={<Attendance />} />
            <Route path="leaves" element={<Leaves />} />
+           <Route path="payroll" element={<Payroll />} />
            <Route path="departments" element={<Department />} />
            <Route path="positions" element={<Position />} />
            <Route path="overtime-requests" element={<OvertimeRequest />} />

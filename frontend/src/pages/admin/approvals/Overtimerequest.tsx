@@ -112,7 +112,7 @@ const OvertimeRequest = () => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {isLoading ? (
-                  <TableSkeleton rows={4} cols={5} />
+                  <TableSkeleton rows={4} columns={5} />
                 ) : overtimeRequests && overtimeRequests.length > 0 ? (
                   overtimeRequests.map((record) => (
                     <tr key={record.id} className="hover:bg-blue-50/30 transition-colors group">

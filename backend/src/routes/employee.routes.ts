@@ -16,6 +16,7 @@ router.get('/profile', protect, catchAsync(async (req: any, res) => {
     where: { id: req.user.id },
     select: {
       id: true,
+      employeeId: true,
       firstName: true,
       lastName: true,
       email: true,

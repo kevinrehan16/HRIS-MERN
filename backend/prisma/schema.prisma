@@ -28,6 +28,7 @@ model Employee {
   leaveCredits          Int             @default(15)
   leaves                LeaveRequest[]  // <--- Pag WALANG ID it means One-To-Many Relationship
   basicSalary           Float           @default(0.0) // Monthly Basic Salary
+  allowance             Float           @default(0)
   payrolls              Payroll[]       // <--- Pag WALANG ID it means One-To-Many Relationship
   status                EmployeeStatus  @default(PROBATIONARY)
   attendanceCorrections AttendanceCorrection[]
@@ -132,11 +133,15 @@ model Payroll {
   pagibig             Float    @default(0.0)
   withholdingTax      Float    @default(0)
   nightDiffPay        Float    @default(0)
+  holidayPay          Float    @default(0)
+  allowances          Float    @default(0) // (Non-taxable usually)
+  grossPay            Float    @default(0.0) // <--- Added (Crucial for reporting)
   accrued13thMonth    Float    @default(0)
   accruedOtherBonuses Float    @default(0)
   
   netPay              Float
   status              PayrollStatus  @default(PENDING) // PENDING, PAID, VOID
+  remarks             String?       @db.Text // <--- Added for audit trail
   createdAt           DateTime @default(now())
 }
 

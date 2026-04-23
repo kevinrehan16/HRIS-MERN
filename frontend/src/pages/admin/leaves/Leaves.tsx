@@ -67,7 +67,7 @@ const Leaves = () => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {isLoading ? (
-                  <TableSkeleton rows={4} cols={6} />
+                  <TableSkeleton rows={4} columns={6} />
                 ) : (
                   leaves && leaves.length > 0 ? (
                     leaves.map((record) => (
@@ -75,7 +75,7 @@ const Leaves = () => {
                         {/* 1. EMPLOYEE SECTION (Consistent) */}
                         <td className="px-4 py-2">
                           <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 shrink-0 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-[10px]">
+                            <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-sm text-xs">
                               {getInitials(record.firstName, record.lastName)}
                             </div>
                             <div>

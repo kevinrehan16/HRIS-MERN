@@ -36,7 +36,12 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   }
 
   const token = jwt.sign(
-    { id: employee.id, email: employee.email, role: employee.role },
+    { id: employee.id, 
+      email: employee.email, 
+      role: employee.role, 
+      firstName: employee.firstName,
+      lastName: employee.lastName
+    },
     process.env.JWT_SECRET || 'supersecretkey',
     { expiresIn: '1d' }
   );

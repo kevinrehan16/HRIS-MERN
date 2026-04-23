@@ -188,7 +188,7 @@ const Attendance = () => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {isLoading ? (
-                  <TableSkeleton rows={4} cols={6} />
+                  <TableSkeleton rows={4} columns={6} />
                 ) : (
                   filteredLogs && filteredLogs.length > 0 ? (
                     filteredLogs.map((record) => (

@@ -106,7 +106,7 @@ const LeaveRequest = () => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {isLoading ? (
-                  <TableSkeleton rows={4} cols={6} />
+                  <TableSkeleton rows={4} columns={6} />
                 ) : (
                   leaveRequests && leaveRequests.length > 0 ? (
                     leaveRequests.map((request) => (

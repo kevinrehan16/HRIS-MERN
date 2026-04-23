@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LeaveService } from '../services/leave.service';
+import { PayrollService } from '../services/payroll.service';
 
-export const useLeave = (search: string = "") => {
+export const usePayroll = (search: string = "") => {
   const queryClient = useQueryClient();
 
-  const leaveQuery = useQuery({
-    queryKey: ['leaves', search],
-    queryFn: () => LeaveService.getAll(search),
+  const payrollQuery = useQuery({
+    queryKey: ['payroll', search],
+    queryFn: () => PayrollService.getAll(search),
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5,
     select: (response) => {
@@ -15,6 +15,6 @@ export const useLeave = (search: string = "") => {
   });
 
   return { 
-    leaveQuery
+    payrollQuery
   };
 };

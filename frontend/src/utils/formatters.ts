@@ -125,13 +125,18 @@ export const calculateLeaveDays = (startDate: string | Date, endDate: string | D
  */
 export const getMonthShort = (dateString: string | Date): string => {
   if (!dateString) return '---';
-  return new Date(dateString).toLocaleString('en-US', { month: 'short' });
+  // Gumamit ng 'UTC' timeZone option para hindi mag-shift ang date
+  return new Date(dateString).toLocaleString('en-US', { 
+    month: 'short', 
+    timeZone: 'UTC' 
+  });
 };
 
 /**
- * Kunin ang Day Number (e.g., 15)
+ * Kunin ang Day Number gamit ang UTC
  */
-export const getDayNumber = (dateString: string | Date): string => {
-  if (!dateString) return '--';
-  return new Date(dateString).getDate().toString();
+export const getDayNumber = (dateString: string | Date): number => {
+  if (!dateString) return 0;
+  // getUTCDate() ang kukuha ng eksaktong date sa database (e.g., 15)
+  return new Date(dateString).getUTCDate(); 
 };
