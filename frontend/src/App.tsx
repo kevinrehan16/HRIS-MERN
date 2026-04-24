@@ -20,6 +20,9 @@ import LeaveRequest from './pages/admin/approvals/LeaveRequest';
 
 // --- MGA IMPORTS NG PAGES AT LAYOUTS NI EMPLOYEE ---
 import EmployeeLayout from './components/layouts/EmployeeLayout';
+import EmpDashboard from './pages/employee/dashboard/Dashboard';
+import MyProfile from './pages/employee/my-profile/MyProfile';
+import DailyLogs from './pages/employee/attendance/DailyLogs';
 
 import FaceClock from './components/modals/FaceClockModal';
 
@@ -84,6 +87,7 @@ function App() {
           element={isAuthenticated && user?.role === 'ADMIN' ? <AdminLayout /> : <Navigate to="/login" />} 
         >
            {/* Siguraduhin na may default child route sa loob ng AdminLayout (Outlet) */}
+           <Route index element={<Navigate to="dashboard" replace />} />
            <Route path="dashboard" element={<Dashboard />} />
            <Route path="employees" element={<Employees />} />
            <Route path="attendance" element={<Attendance />} />
@@ -100,7 +104,13 @@ function App() {
         <Route 
           path="/portal/*" 
           element={isAuthenticated && user?.role === 'EMPLOYEE' ? <EmployeeLayout /> : <Navigate to="/login" />} 
-        />
+        >
+          {/* Siguraduhin na may default child route sa loob ng AdminLayout (Outlet) */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<EmpDashboard />} />
+          <Route path="my-profile" element={<MyProfile />} />
+          <Route path="daily-logs" element={<DailyLogs />} />
+        </Route>
 
         {/* FALLBACK */}
         <Route path="*" element={

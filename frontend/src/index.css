@@ -71,7 +71,7 @@
 }
 
 @layer components {
-  /* --- PARENT/MAIN MENU --- */
+  /* --- ADMIN PARENT/MAIN MENU --- */
   .sidebar-link {
     @apply flex items-center p-3 mb-1 rounded-lg no-underline transition-all duration-200 cursor-pointer outline-none;
     color: #ffffff !important; /* STRICT WHITE para sa lahat ng Parent */
