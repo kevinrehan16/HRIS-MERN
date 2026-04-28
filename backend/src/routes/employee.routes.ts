@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { prisma } from '../config/db.js';
 import { protect, restrictTo } from '../middlewares/auth.middleware.js';
+import { updateEmployeeSchema } from '../schemas/auth.schema.js';
+import { validate } from '../middlewares/validate.middleware.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { getAllEmployees, updateEmployeeProfile, deleteEmployee, enrollFace, getEmployeesWithFace } from '../controllers/employee.controller.js';
@@ -31,7 +33,7 @@ router.get('/profile', protect, catchAsync(async (req: any, res) => {
 }));
 
 router.get('/', restrictTo('ADMIN'), getAllEmployees);
-router.patch('/:id', restrictTo('ADMIN'), updateEmployeeProfile);
+router.patch('/:id', restrictTo('ADMIN'), validate(updateEmployeeSchema), updateEmployeeProfile);
 router.delete('/:id', restrictTo('ADMIN'), deleteEmployee);
 router.put('/enroll-face/:id', restrictTo('ADMIN'), enrollFace);
 

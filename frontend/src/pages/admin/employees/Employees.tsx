@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UserPlus, Users, Search, MoreVertical, Search as SearchIcon, Download, Loader2, Edit3, Trash2, Building2 } from 'lucide-react';
+import { UserPlus, Users, Search, MoreVertical, Search as SearchIcon, Download, Edit3, Trash2, Building2 } from 'lucide-react';
 
 import { useEmployees } from '../../../hooks/useEmployees';
 import { useLookups } from '../../../hooks/useLookups';
@@ -9,6 +9,7 @@ import { getInitials } from '../../../utils/formatters';
 
 import PageHeader from '../../../components/common/PageHeader';
 import TableSkeleton from '../../../components/common/TableSkeleton';
+import NoDataFound from '../../../components/common/NoDataFound';
 
 import AddEmployeeModal from '../../../components/modals/AddEmployeeModal';
 import { useDebounce } from '../../../hooks/useDebounce';
@@ -130,13 +131,23 @@ const Employees = () => {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {isLoading || isFetching ? (
-                  <TableSkeleton rows={limit || 5} columns={6} />
+                  <TableSkeleton rows={5} columns={6} />
                 ) : isError ? (
                   <tr>
                     <td colSpan={6} className="py-10 text-center">
                       <div className="flex flex-col items-center gap-2 text-red-500">
                         <span className="font-black uppercase tracking-widest text-[10px]">Error Loading Data</span>
                       </div>
+                    </td>
+                  </tr>
+                ) : employees.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <NoDataFound 
+                        messageIcon={<Users size={48} className="opacity-20" />}
+                        message='No record found!'
+                        subMessage='Try to seach by other information again.'
+                      />
                     </td>
                   </tr>
                 ) : (

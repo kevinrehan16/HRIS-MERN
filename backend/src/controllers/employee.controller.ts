@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as EmployeeRepo from '../repositories/employee.repository.js';
 import { prisma } from '../config/db.js';
 
+import { hashPassword } from '../utils/password.util.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { AppError } from '../utils/appError.js';
@@ -46,12 +47,34 @@ export const getAllEmployees = catchAsync(async (req: Request, res: Response) =>
 
 // 3. UPDATE (Using Repository)
 export const updateEmployeeProfile = catchAsync(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    
-    // Check muna kung exist bago i-update (Enterprise safety check)
-    const updatedEmployee = await EmployeeRepo.updateEmployee(Number(id), req.body);
-    
-    sendResponse(res, 200, updatedEmployee, "Employee Profile Updated Successfully!");
+  const { id } = req.params;
+  const employeeIdInt = Number(id);
+
+  // 1. Ihiwalay ang sensitive o kailangang i-transform na data
+  const { password, confirmPassword, birthDate, ...restOfData } = req.body;
+
+  // 2. I-prepare ang update payload
+  const updatePayload: any = {
+    ...restOfData,
+    // Siguraduhing Date object ang birthDate kung binago
+    ...(birthDate && { birthDate: new Date(birthDate) }),
+    // Siguraduhing Numbers ang IDs (Prisma safety)
+    departmentId: restOfData.departmentId ? Number(restOfData.departmentId) : undefined,
+    positionId: restOfData.positionId ? Number(restOfData.positionId) : undefined,
+  };
+
+  // 3. Password Logic (Optional: I-update lang kung may bagong password na nilagay)
+  if (password && password.trim() !== "") {
+    updatePayload.password = await hashPassword(password);
+  }
+
+  // 4. Execute Update via Repo
+  const updatedEmployee = await EmployeeRepo.updateEmployee(employeeIdInt, updatePayload);
+
+  // 5. Security: Huwag ibalik ang password sa frontend
+  const { password: _, ...safeData } = updatedEmployee;
+
+  sendResponse(res, 200, safeData, "Employee Profile Updated Successfully!");
 });
 
 // 4. DELETE (Using Repository)

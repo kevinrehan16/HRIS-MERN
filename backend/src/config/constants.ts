@@ -12,4 +12,5 @@ export const ROUTES = {
   POSITIONS: `${API_PREFIX}/positions`,
   HOLIDAYS: `${API_PREFIX}/holidays`,
   ATTENDANCE_CORRECTION: `${API_PREFIX}/attendance-correction`,
+  SCHEDULE: `${API_PREFIX}/schedules`,
 };

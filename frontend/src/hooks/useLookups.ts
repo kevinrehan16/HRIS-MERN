@@ -19,9 +19,18 @@ export const useLookups = () => {
     },
   });
 
+  const schedulesQuery = useQuery({
+    queryKey: ['schedules'],
+    queryFn: async () => {
+      const { data } = await axiosClient.get('/schedules');
+      return data.data;
+    },
+  });
+
   return {
     departments: departmentsQuery.data || [],
     positions: positionsQuery.data || [],
-    isLoading: departmentsQuery.isLoading || positionsQuery.isLoading,
+    schedules: schedulesQuery.data || [],
+    isLoading: departmentsQuery.isLoading || positionsQuery.isLoading || schedulesQuery.isLoading,
   };
 };

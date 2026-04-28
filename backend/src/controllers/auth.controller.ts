@@ -7,23 +7,72 @@ import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
-  // DITO: Wala na tayong manual 'if (!email)' etc. kasi hinarang na ni Zod sa Route level.
-  const { employeeId, firstName, lastName, email, password, departmentId, positionId } = req.body;
+  // 1. Destructuring: Kunin lahat ng fields na na-validate na ng Zod
+  const { 
+    employeeId, role, firstName, lastName, middleName, extensionName,
+    email, password, birthDate, gender, civilStatus, contactNo,
+    tinNo, sssNo, philhealthNo, pagibigNo,
+    departmentId, positionId, scheduleId,
+    status, employmentType, basicSalary, allowance, leaveCredits 
+  } = req.body;
 
-  // 1. Business Logic Check (Ito na lang ang matitira)
-  const userExists = await prisma.employee.findUnique({ where: { email } });
-  if (userExists) {
-    return res.status(400).json({ success: false, message: "Email already taken" });
-  }
-
-  // 2. Process
-  const hashedPassword = await hashPassword(password);
-  const newEmployee = await prisma.employee.create({
-    data: { employeeId, firstName, lastName, email, password: hashedPassword, departmentId, positionId }
+  // 2. Uniqueness Checks (Dahil @unique ang mga ito sa DB)
+  const existingEmployee = await prisma.employee.findFirst({
+    where: {
+      OR: [
+        { email },
+        { employeeId },
+        { tinNo: tinNo || undefined }, // Check lang kung may laman
+        { sssNo: sssNo || undefined }
+      ]
+    }
   });
 
-  // 3. Success Response
-  sendResponse(res, 201, { id: newEmployee.id, email: newEmployee.email, departmentId, positionId }, "Employee Registered!");
+  if (existingEmployee) {
+    let field = "Employee";
+    if (existingEmployee.email === email) field = "Email";
+    if (existingEmployee.employeeId === employeeId) field = "Employee ID";
+    
+    sendResponse(res, 400, "", `${field} is already registered.`);
+  }
+
+  // 3. Password Hashing
+  const hashedPassword = await hashPassword(password);
+
+  // 4. Create Record
+  const newEmployee = await prisma.employee.create({
+    data: {
+      employeeId,
+      role: role || 'EMPLOYEE',
+      firstName,
+      lastName,
+      middleName,
+      extensionName,
+      email,
+      password: hashedPassword,
+      birthDate: birthDate ? new Date(birthDate) : null,
+      gender,
+      civilStatus,
+      contactNo,
+      tinNo,
+      sssNo,
+      philhealthNo,
+      pagibigNo,
+      departmentId,
+      positionId,
+      scheduleId,
+      status: status || 'ACTIVE',
+      employmentType,
+      basicSalary,
+      allowance,
+      leaveCredits
+    }
+  });
+
+  // 5. Response (Clean: No password included)
+  const { password: _, ...safeData } = newEmployee;
+  
+  sendResponse(res, 201, safeData, "Employee created successfully!");
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {

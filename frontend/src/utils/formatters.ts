@@ -140,3 +140,16 @@ export const getDayNumber = (dateString: string | Date): number => {
   // getUTCDate() ang kukuha ng eksaktong date sa database (e.g., 15)
   return new Date(dateString).getUTCDate(); 
 };
+
+export const calculateAge = (birthDate: Date | string | null) => {
+  if (!birthDate) return "";
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+};

@@ -10,30 +10,62 @@ generator client {
 }
 
 model Employee {
-  id                    Int             @id @default(autoincrement())
-  employeeId            String          @unique // Halimbawa: HRIS-2024-001
+  id                    Int              @id @default(autoincrement())
+  employeeId            String           @unique
+  
+  // --- Account Info ---
+  email                 String           @unique
+  password              String
+  role                  Role             @default(EMPLOYEE)
+  
+  // --- Personal Info (Standard PH Format) ---
   firstName             String
   lastName              String
-  email                 String          @unique
-  password              String
-  faceDescriptor        String?         @db.LongText // Dito ise-save ang 128-digit numeric array
-  role                  Role            @default(EMPLOYEE) // <--- System Permission
-  departmentId          Int?            // <--- Pag may ID it means One-To-One Relationship
-  department            Department?     @relation(fields: [departmentId], references: [id])
-  positionId            Int?            // <--- Pag may ID it means One-To-One Relationship
-  position              Position?       @relation(fields: [positionId], references: [id])
-  attendances           Attendance[]    // <--- Pag WALANG ID it means One-To-Many Relationship
-  scheduleId            Int?            // <--- Pag may ID it means One-To-One Relationship
-  schedule              Schedule?       @relation(fields: [scheduleId], references: [id])
-  leaveCredits          Int             @default(15)
-  leaves                LeaveRequest[]  // <--- Pag WALANG ID it means One-To-Many Relationship
-  basicSalary           Float           @default(0.0) // Monthly Basic Salary
-  allowance             Float           @default(0)
-  payrolls              Payroll[]       // <--- Pag WALANG ID it means One-To-Many Relationship
-  status                EmployeeStatus  @default(PROBATIONARY)
+  middleName            String?          // New
+  extensionName         String?          // New (Jr., Sr.)
+  birthDate             DateTime?        // New
+  gender                Gender?          // New
+  civilStatus           CivilStatus?     @default(SINGLE) // New
+  contactNo             String?          // New
+  address               String?          @db.Text // New
+  
+  // --- Government / Statutory IDs (New) ---
+  tinNo                 String?          @unique
+  sssNo                 String?          @unique
+  philhealthNo          String?          @unique
+  pagibigNo             String?          @unique
+  
+  // --- Employment Info ---
+  dateHired             DateTime         @default(now()) // New
+  dateResigned          DateTime?        // New
+  status                EmployeeStatus   @default(PROBATIONARY)
+  employmentType        EmploymentType   @default(FULL_TIME) // New
+  
+  // --- Compensation (Decimal is better for money) ---
+  basicSalary           Decimal          @default(0.0) @db.Decimal(12, 2)
+  allowance             Decimal          @default(0.0) @db.Decimal(12, 2)
+  leaveCredits          Float            @default(15.0)
+  
+  // --- Security ---
+  faceDescriptor        String?          @db.LongText 
+  
+  // --- Relations ---
+  departmentId          Int?
+  department            Department?      @relation(fields: [departmentId], references: [id])
+  positionId            Int?
+  position              Position?        @relation(fields: [positionId], references: [id])
+  scheduleId            Int?
+  schedule              Schedule?        @relation(fields: [scheduleId], references: [id])
+  
+  // --- Transaction Arrays ---
+  attendances           Attendance[]
+  leaves                LeaveRequest[]
+  payrolls              Payroll[]
   attendanceCorrections AttendanceCorrection[]
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  documents             Document[]       // Link to the new model
+  
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 }
 
 model Department {
@@ -181,6 +213,16 @@ model AttendanceCorrection {
   employee         Employee       @relation(fields: [employeeId], references: [id])
 }
 
+model Document {
+  id          Int      @id @default(autoincrement())
+  name        String   // Hal: "NBI Clearance", "Resume"
+  fileUrl     String   // Link kung saan naka-save yung file
+  category    String?  // Hal: "Legal", "Recruitment"
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
 // ENUMS HERE...
 enum PayrollStatus {
   PENDING
@@ -242,4 +284,24 @@ enum CorrectionType {
   TIME_IN
   TIME_OUT
   BOTH
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum CivilStatus {
+  SINGLE
+  MARRIED
+  WIDOWED
+  SEPARATED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  PROJECT_BASED
+  INTERN
 }
