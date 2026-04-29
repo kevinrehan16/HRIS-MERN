@@ -69,7 +69,7 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
                   {/* Header ng Dropdown */}
                   <div className="px-3 py-2 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
                     <div className="h-10 w-10 rounded-full bg-purple-400 flex items-center justify-center text-white font-black text-sm shadow-inner">
-                      {getInitials()}
+                      {getInitials(firstName, lastName)}
                     </div>
                     <div className="flex flex-col overflow-hidden">
                       <p className="text-sm font-medium text-slate-800 truncate mb-0">

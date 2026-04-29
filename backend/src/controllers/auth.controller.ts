@@ -125,3 +125,89 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
     message: "Logged out successfully" 
   });
 });
+
+export const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const user = await prisma.employee.findUnique({
+    where: { id: req.user.id },
+    select: {
+      // ... lahat ng basic fields mo
+      id: true,
+      employeeId: true,
+      firstName: true,
+      lastName: true,
+      middleName: true,
+      email: true,
+      leaveCredits: true,
+      status: true,
+
+      // PALITAN ITO: Mula leaveRequests -> leaves
+      leaves: {
+        where: { status: 'APPROVED' },
+        select: {
+          startDate: true,
+          endDate: true,
+        },
+      },
+
+      department: { select: { name: true } },
+      position: { select: { title: true } },
+      schedule: {
+        select: {
+          name: true,
+          shiftStart: true,
+          shiftEnd: true,
+          gracePeriod: true
+        }
+      },
+      // ... isama mo pa yung ibang fields (basicSalary, etc.)
+      basicSalary: true,
+      allowance: true,
+      address: true,
+      birthDate: true,
+      civilStatus: true,
+      contactNo: true,
+      dateHired: true,
+      dateResigned: true,
+      employmentType: true,
+      extensionName: true,
+      gender: true,
+      pagibigNo: true,
+      philhealthNo: true,
+      sssNo: true,
+      tinNo: true,
+      createdAt: true
+    }
+  });
+
+  if (!user) {
+    return sendResponse(res, 404, null, "Employee not found.");
+  }
+
+  // --- CALCULATION LOGIC (Gamit na ang 'leaves') ---
+  const usedCredits = (user.leaves || []).reduce((total: number, request: any) => {
+    const start = new Date(request.startDate);
+    const end = new Date(request.endDate);
+    
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    return total + diffDays;
+  }, 0);
+
+  const total = user.leaveCredits || 0;
+  const left = total - usedCredits;
+
+  const profileData = {
+    ...user,
+    leaveSummary: {
+      total: total,
+      used: usedCredits,
+      left: left
+    }
+  };
+
+  // Linisin ang response
+  delete (profileData as any).leaves;
+
+  sendResponse(res, 200, profileData, "Fetch my profile informations.");
+});

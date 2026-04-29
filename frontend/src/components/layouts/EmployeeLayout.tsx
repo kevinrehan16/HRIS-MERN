@@ -14,6 +14,7 @@ import { useAuthStore } from '../../store/authStore';
 const EmployeeLayout = () => {
   
   const { user } = useAuthStore();
+  const employeeId = (user as any)?.employeeId ?? '';
   // State para sa sidebar collapse
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -25,10 +26,10 @@ const EmployeeLayout = () => {
       {/* --- SIDEBAR --- */}
       <EmpSidebar 
         isCollapsed={isCollapsed}
-        firstName={user?.firstName}
-        lastName={user?.lastName}
-        position={user?.position?.title}
-        employeeId={user?.employeeId}
+        firstName={user?.firstName ?? ''}
+        lastName={user?.lastName ?? ''}
+        position={(user as any)?.position?.title ?? ''}
+        employeeId={employeeId}
       />
 
       {/* --- RIGHT SIDE --- */}
@@ -38,9 +39,9 @@ const EmployeeLayout = () => {
         <EmpTopbar 
           isCollapsed={isCollapsed} 
           setIsCollapsed={setIsCollapsed}
-          firstName={user?.firstName}
-          lastName={user?.lastName}
-          email={user?.email}
+          firstName={user?.firstName ?? ''}
+          lastName={user?.lastName ?? ''}
+          email={user?.email ?? ''}
         />
         
 

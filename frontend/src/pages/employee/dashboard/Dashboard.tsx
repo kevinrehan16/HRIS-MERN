@@ -1,118 +1,123 @@
-import React from 'react'
-import { ArrowUpRight, Clock, Calendar, FileText, Fingerprint, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, Timer, LogOut, Coffee, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '../../../store/authStore';
+import { formatShiftSchedule, formatCurrency, formatDate } from '../../../utils/formatters';
 
 const Dashboard = () => {
-
   const { user } = useAuthStore();
 
+  // Mock data for calculation
+  const totalShiftHours = 9; // e.g., 8am to 5pm
+  const renderedHours = 8.4; // 8:24 renderred
+  const progressPercentage = (renderedHours / totalShiftHours) * 100;
+
   return (
-    <>
-      <div className="p-6 sm:p-6 bg-gray-100 min-h-screen">
-        {/* WELCOME SECTION */}
-        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900">
-                Good Morning, {user?.firstName || 'there'}! 👋
-            </h2>
-            <p className="text-slate-500 text-[13px] font-medium mt-1">Here's what's happening with your work profile today.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-[11px] font-black text-slate-400 uppercase">April 21, 2026</p>
-              <p className="text-sm font-bold text-slate-700">08:45 AM</p>
-            </div>
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-xl font-bold text-[13px] shadow-lg shadow-purple-200 transition-all active:scale-95 flex items-center gap-2">
-              <Clock size={16} /> Clock In
-            </button>
-          </div>
-        </section>
+    <div className="min-h-screen bg-slate-50 font-sans antialiased text-slate-900 pb-12">
+      <div className="h-50 bg-slate-950 absolute top-0 left-0 right-0 z-0" />
+      
+      <div className="w-full space-y-8 relative z-10 px-4 p-6 md:px-8">
+        
+      <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black !text-slate-100">
+              Good Morning, {user?.firstName || 'there'}!👋
+          </h2>
+          <p className="text-slate-400 text-[13px] italic font-medium mt-1">Here's what's happening with your work profile today.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 !rounded-md font-bold text-[13px] shadow-lg shadow-purple-200 transition-all active:scale-95 flex items-center gap-2">
+            <Clock size={20} /> Clock In
+          </button>
+        </div>
+      </section>
 
-        {/* STAT CARDS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard label="Vacation Leave" value="12.5" total="15" color="blue" />
-          <StatCard label="Sick Leave" value="08.0" total="12" color="rose" />
-          <StatCard label="Overtime (Hrs)" value="04.2" total="Monthly" color="emerald" />
+      <div className="bg-white border border-slate-200 rounded-lg p-7 shadow-lg shadow-slate-100 flex flex-col justify-between group hover:border-purple-300 transition-all">
+      
+      {/* 1. TOP BAR: ACTIVITY & STATUS */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Active Shift Activity</span>
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">NODE_004 • CAVITE</p>
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="px-3 py-1 bg-purple-50 text-purple-700 text-[11px] font-black rounded uppercase tracking-tighter shadow-inner shadow-purple-100">
+            ON DUTY
+          </span>
+          <span className="text-[10px] font-bold text-slate-300">ID: EMP-2026-004</span>
+        </div>
+      </div>
+
+      {/* 2. THE MAIN HUB: COUNTER + GRAPH (GITNA) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 my-6 border-y border-slate-100 py-6">
+        
+        {/* Rendered Hours Counter */}
+        <div className="flex-shrink-0">
+          <h2 className="text-6xl font-black text-slate-950 tracking-tighter tabular-nums drop-shadow-sm">
+            08:24<span className="text-purple-600">:</span>12
+          </h2>
+          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tight mt-1">Rendered Hours Today</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ANNOUNCEMENTS */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-black text-slate-800 text-[14px] uppercase tracking-wider">Company Announcements</h3>
-                <button className="text-purple-600 text-[12px] font-bold hover:underline">View All</button>
-              </div>
-              <div className="space-y-4">
-                <AnnouncementItem tag="HR" title="New Health Insurance Policy for 2026" date="2 hours ago" />
-                <AnnouncementItem tag="Operations" title="System Maintenance: April 25, 11PM - 2AM" date="1 day ago" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <QuickAction icon={<Calendar />} label="File Leave" color="bg-blue-50 text-blue-600" />
-              <QuickAction icon={<FileText />} label="Payslip" color="bg-purple-50 text-purple-600" />
-              <QuickAction icon={<Fingerprint />} label="Correction" color="bg-amber-50 text-amber-600" />
-              <QuickAction icon={<User />} label="Profile" color="bg-slate-50 text-slate-600" />
-            </div>
+        {/* ─── SHIFT PROGRESS TIMELINE GRAPH (NEW) ─── */}
+        <div className="flex-1 lg:max-w-md w-full relative group">
+          <div className="flex justify-between items-center mb-3">
+             <span className="text-[10px] font-black text-slate-400 uppercase">Live Shift Progress</span>
+             <span className="text-[10px] font-black text-purple-600 uppercase tracking-widest">{progressPercentage.toFixed(0)}% Done</span>
+          </div>
+          
+          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden relative border border-slate-200">
+             {/* Progress Fill */}
+             <div 
+               className="absolute top-0 left-0 h-full bg-purple-600 rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(124,58,237,0.4)]" 
+               style={{ width: `${progressPercentage}%` }} 
+             />
+             {/* Static Markers (Lunch/Breaks) */}
+             <div className="absolute left-[50%] h-full w-0.5 bg-white group-hover:bg-amber-400 transition-colors" title="Lunch Break (4hr mark)" />
           </div>
 
-          {/* SCHEDULE */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-black text-slate-800 text-[14px] uppercase tracking-wider mb-6">Your Schedule</h3>
-            <div className="space-y-6">
-              <ScheduleItem time="08:00 AM" label="Shift Start" />
-              <ScheduleItem time="12:00 PM" label="Lunch Break" isBreak />
-              <ScheduleItem time="05:00 PM" label="Shift End" />
-            </div>
+          <div className="flex justify-between text-[10px] font-medium text-slate-400 mt-2">
+             <span>08:00 AM (Start)</span>
+             <span>05:00 PM (Out)</span>
           </div>
         </div>
+      </div>
+
+      {/* 3. BOTTOM BAR: ACTIONS & METRICS */}
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex gap-10">
+          <TimeBlock label="Time In" time="08:02 AM" />
+          <div className="w-px h-10 bg-slate-100 self-stretch" />
+          <TimeBlock label="Expected Out" time="05:00 PM" isExpected />
+        </div>
+        
+        <div className="flex items-center gap-3">
+           <button className="p-3 bg-white border border-slate-200 rounded-md text-slate-500 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-600 transition-all">
+              <Coffee size={20} />
+           </button>
+           <button className="px-6 py-3 bg-slate-950 text-white text-[11px] font-black uppercase tracking-widest rounded-md hover:bg-purple-700 transition-all shadow-lg shadow-slate-200 flex items-center gap-2">
+              <LogOut size={16} />
+              Clock Out
+           </button>
+        </div>
+      </div>
+
+    </div>
+        
 
       </div>
-    </>
-  )
-}
+    </div>
+  );
+};
 
-// --- SUB-COMPONENTS --- (Huwag kalimutang i-export o ilagay sa hiwalay na file kung gusto mo)
-const StatCard = ({ label, value, total, color }) => (
-  <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
-    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
-    <div className="mt-2 flex items-baseline gap-2">
-      <span className={`text-3xl font-black text-slate-800`}>{value}</span>
-      <span className="text-slate-400 font-bold text-sm">/ {total}</span>
-    </div>
-    <div className="mt-4 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-      <div className={`h-full rounded-full bg-${color}-500`} style={{ width: '70%' }}></div>
-    </div>
+// Sub-component for clean rendering
+const TimeBlock = ({ label, time, isExpected }: any) => (
+  <div className="space-y-1">
+    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+    <p className={`text-base font-black ${isExpected ? 'text-slate-400 italic' : 'text-slate-950'}`}>{time}</p>
   </div>
 );
 
-const AnnouncementItem = ({ tag, title, date }) => (
-  <div className="group cursor-pointer flex items-start gap-4">
-    <div className="py-1 px-2 rounded bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-tighter">{tag}</div>
-    <div className="flex-1 border-b border-slate-50 pb-4 group-last:border-0">
-      <p className="text-[13px] font-bold text-slate-700 group-hover:text-purple-600 transition-colors leading-snug">{title}</p>
-      <p className="text-[11px] text-slate-400 mt-1">{date}</p>
-    </div>
-    <ArrowUpRight size={14} className="text-slate-300 group-hover:text-purple-600 transition-colors" />
-  </div>
-);
-
-const QuickAction = ({ icon, label, color }) => (
-  <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group text-center flex flex-col items-center gap-3">
-    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center transition-transform group-hover:scale-110`}>
-      {React.cloneElement(icon, { size: 20 })}
-    </div>
-    <span className="text-[12px] font-bold text-slate-700">{label}</span>
-  </div>
-);
-
-const ScheduleItem = ({ time, label, isBreak = false }) => (
-  <div className="flex items-center gap-4">
-    <div className="w-16 text-[11px] font-black text-slate-400">{time}</div>
-    <div className={`h-2 w-2 rounded-full ${isBreak ? 'bg-amber-400' : 'bg-purple-500'}`}></div>
-    <div className="text-[13px] font-bold text-slate-700">{label}</div>
-  </div>
-);
-
-export default Dashboard
+export default Dashboard;

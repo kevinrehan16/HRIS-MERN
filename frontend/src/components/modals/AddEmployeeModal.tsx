@@ -328,6 +328,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                   <FormSelect 
                     label="Civil Status"
                     options={ENUMS.CIVIL_STATUS} 
+                    reqField={false}
                     error={errors.civilStatus}
                     {...register("civilStatus")} 
                   />
