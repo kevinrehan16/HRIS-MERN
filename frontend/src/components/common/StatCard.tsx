@@ -4,7 +4,7 @@ const StatCard = ({ title, value, icon, color, isActive, onClick }) => {
   return (
     <button 
       onClick={onClick}
-      className={`flex items-center gap-1.5 p-1.5 rounded-lg border transition-all duration-200 min-w-0 flex-1
+      className={`flex items-center gap-1.5 p-1.5 rounded-lg border rounded transition-all duration-200 min-w-0 flex-1
         ${isActive 
           ? 'bg-white shadow-md border-white scale-[1.05] z-10' 
           : 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 text-white'

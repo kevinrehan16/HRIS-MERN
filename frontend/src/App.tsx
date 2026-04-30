@@ -110,7 +110,7 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<EmpDashboard />} />
           <Route path="my-profile" element={<MyProfile />} />
-          <Route path="daily-logs" element={<DailyLogs />} />
+          <Route path="attendance" element={<DailyLogs />} />
         </Route>
 
         {/* FALLBACK */}

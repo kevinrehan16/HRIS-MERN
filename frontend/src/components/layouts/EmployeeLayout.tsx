@@ -1,14 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { 
-  Clock, Calendar, FileText, User, 
-  ChevronDown, Bell, LogOut, 
-  LayoutDashboard, Fingerprint,
-  Menu, Lock, AtSign // Idinagdag para sa collapse icon
-} from 'lucide-react';
 
 import EmpSidebar from './employee/EmpSidebar';
 import EmpTopbar from './employee/EmpTopbar';
+import Footer from './Footer';
 import { useAuthStore } from '../../store/authStore';
 
 const EmployeeLayout = () => {
@@ -49,6 +44,8 @@ const EmployeeLayout = () => {
            {/* Your main content goes here (Dashboard, etc.) */}
            <Outlet />
         </main>
+
+        <Footer />
       </div>
     </div>
   );

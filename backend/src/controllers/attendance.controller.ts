@@ -354,3 +354,63 @@ export const getPendingOvertime = catchAsync(async (req: Request, res: Response)
     data: pendingOT,
   });
 });
+
+export const getMyAttendance = catchAsync(async (req: Request, res: Response) => {
+  const myAttendance = await prisma.attendance.findMany({
+    where: {
+      employeeId: req.user.id,
+    },
+    include: {
+      employee: {
+        select: {
+          id: true,
+          schedule: {
+            select: {
+              name: true,
+              shiftStart: true,
+              shiftEnd: true,
+            }
+          }
+        }
+      }
+    },
+    orderBy: {
+      date: 'desc'
+    }
+  });
+
+  // I-compute ang totalHours para sa bawat record
+  const formattedAttendance = myAttendance.map((record) => {
+    let totalHours = 0;
+
+    if (record.timeIn && record.timeOut) {
+      const start = new Date(record.timeIn);
+      const end = new Date(record.timeOut);
+      
+      let diffInMs = end.getTime() - start.getTime();
+
+      // 1. Handle Night Shift (Overnight)
+      if (diffInMs < 0) {
+        diffInMs += 24 * 60 * 60 * 1000; 
+      }
+      
+      // 2. Convert to decimal hours
+      const grossHours = diffInMs / (1000 * 60 * 60);
+
+      // 3. Smart Break Deduction Logic
+      // Kung >= 5 hours ang tinagal, minus 1 hour break.
+      // Kung less than 5 hours, 0 ang bawas.
+      const breakTime = grossHours >= 5 ? 1 : 0; 
+      
+      totalHours = Math.max(0, grossHours - breakTime);
+    }
+
+    return {
+      ...record,
+      // I-format sa 1 decimal place para malinis sa UI
+      totalHours: `${totalHours.toFixed(1)}h` 
+    };
+  });
+
+  sendResponse(res, 200, formattedAttendance, "Fetch my attendance logs.");
+});

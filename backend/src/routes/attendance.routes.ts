@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { protect, restrictTo } from '../middlewares/auth.middleware.js';
-import { timeIn, timeOut, getAttendanceSummary, approveOvertime, adjustAttendance, getAdminAttendance, getPendingOvertime } from '../controllers/attendance.controller.js';
+import { timeIn, timeOut, getAttendanceSummary, approveOvertime, adjustAttendance, getAdminAttendance, getPendingOvertime, getMyAttendance } from '../controllers/attendance.controller.js';
 
 const router = Router();
 
@@ -9,6 +9,10 @@ router.patch('/time-out', timeOut);
 
 // Lahat ng attendance routes ay kailangan ng login
 router.use(protect);
+// EMPLOYEE
+router.get('/my-attendance', protect, getMyAttendance);
+
+// ADMIN
 router.get('/summary', restrictTo('ADMIN'), getAttendanceSummary);
 router.patch('/approve-ot', protect, restrictTo('ADMIN'), approveOvertime);
 router.patch('/correction', protect, restrictTo('ADMIN'), adjustAttendance);

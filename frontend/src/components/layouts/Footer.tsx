@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <footer className="bg-white border-t border-slate-200 py-2 px-8 shrink-0">
       <div className="flex flex-col md:flex-row items-center justify-between gap-2 text-[10px] md:text-xs text-slate-500">
-        <div>
+        <div className="py-1 text-[10px] text-slate-400 shrink-0">
           Copyright © HRIS System 2026
         </div>
         <div className="flex items-center gap-1">

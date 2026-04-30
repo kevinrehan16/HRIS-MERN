@@ -516,8 +516,8 @@ const IDCard = ({ label, shortName, value, imgSrc, themeColor }) => {
   };
 
   return (
-    <div className={`relative group overflow-hidden bg-gradient-to-br ${themes[themeColor]} border rounded-md p-4 transition-all hover:shadow-lg hover:-translate-y-0.5`}>
-      <div className="flex items-center gap-4 relative z-10">
+    <div className={`relative group overflow-hidden bg-gradient-to-br ${themes[themeColor]} border rounded-md px-4 py-1.5 transition-all hover:shadow-lg hover:-translate-y-0.5`}>
+      <div className="flex items-center gap-3 relative z-10">
         {/* Government Logo Placeholder */}
         <div className="w-12 h-12 rounded-md bg-white p-1.5 shadow-sm border border-slate-100 flex items-center justify-center shrink-0">
           <img 
@@ -530,7 +530,7 @@ const IDCard = ({ label, shortName, value, imgSrc, themeColor }) => {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-3">
             <span className="text-[9px] font-black uppercase tracking-widest opacity-60">{label}</span>
             <span className="text-[10px] font-black px-1.5 py-0.5 bg-white/50 rounded border border-current/10">{shortName}</span>
           </div>

@@ -82,7 +82,14 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
             isCollapsed={isCollapsed} 
             to="/portal/my-profile" // Profile link
             icon={<IdCardLanyard size={18} />} 
-            label="My Profile" 
+            label="Profile" 
+          />
+
+          <NavItem 
+            isCollapsed={isCollapsed} 
+            to="/portal/Attendance" // Profile link
+            icon={<Clock size={18} />} 
+            label="Attendance" 
           />
 
           <NavItem 
@@ -105,11 +112,11 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
         {/* 4. LOGOUT */}
         <div className="border-t border-slate-100 shrink-0 bg-white overflow-hidden">
           <button 
-            className={`flex items-center justify-center py-2.5 w-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all font-bold text-[12px] border border-transparent hover:border-rose-100 overflow-hidden`}
+            className={`flex items-center justify-center gap-1 py-1.5 w-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all font-normal text-[12px] border border-transparent hover:border-rose-100 overflow-hidden`}
             onClick={logout}
           >
-            <LogOut size={18} className='text-rose-600 font-bold shrink-0' /> 
-            {!isCollapsed && <span className="ml-2 whitespace-nowrap overflow-hidden">Logout</span>}
+            <LogOut size={16} className='text-rose-600 font-bold shrink-0' /> 
+            {!isCollapsed && <span className="whitespace-nowrap overflow-hidden">Logout</span>}
           </button>
         </div>
       </aside>

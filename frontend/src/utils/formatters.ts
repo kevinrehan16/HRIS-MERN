@@ -132,6 +132,24 @@ export const getMonthShort = (dateString: string | Date): string => {
   });
 };
 
+export const getFullDayName = (date: Date | string): string => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+
+  // Array ng mga araw para makuha ang pangalan base sa UTC index (0-6)
+  const days = [
+    "SUNDAY",
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+  ];
+
+  // getUTCDay() ang gagamitin para hindi mag-adjust sa timezone
+  return days[d.getUTCDay()];
+};
+
 /**
  * Kunin ang Day Number gamit ang UTC
  */
