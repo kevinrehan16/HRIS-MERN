@@ -372,6 +372,11 @@ export const getMyAttendance = catchAsync(async (req: Request, res: Response) =>
             }
           }
         }
+      },
+      corrections: {
+        select: {
+          status: true
+        }
       }
     },
     orderBy: {
@@ -413,4 +418,23 @@ export const getMyAttendance = catchAsync(async (req: Request, res: Response) =>
   });
 
   sendResponse(res, 200, formattedAttendance, "Fetch my attendance logs.");
+});
+
+export const requestOvertime = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params; // Kunin ang ID mula sa URL
+  const { otRemarks } = req.body;
+
+  const attendance = await prisma.attendance.update({
+    where: { 
+      id: Number(id),
+      employeeId: req.user.id 
+    },
+    data: {
+      otStatus: "PENDING",
+      otRemarks: otRemarks,
+      // Dito mo rin pwedeng i-calculate kung ilang minutes ang OT
+    }
+  });
+
+  sendResponse(res, 200, attendance, "Overtime request submitted.");
 });

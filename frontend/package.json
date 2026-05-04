@@ -16,6 +16,7 @@
     "@vladmandic/face-api": "^1.7.15",
     "axios": "^1.14.0",
     "bootstrap": "^5.3.8",
+    "dayjs": "^1.11.20",
     "lucide-react": "^1.14.0",
     "react": "^19.2.4",
     "react-bootstrap": "^2.10.10",

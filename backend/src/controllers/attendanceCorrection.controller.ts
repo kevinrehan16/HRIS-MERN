@@ -43,34 +43,31 @@ export const getCorrectionRequests = catchAsync(async (req, res) => {
   sendResponse(res, 200, requests, `Fetched ${requests.length} correction requests`);
 });
 
-// sample logic for creating a request
+// SA CONTROLLER MO
 export const createCorrectionRequest = catchAsync(async (req, res) => {
   const { attendanceId, requestedTimeIn, requestedTimeOut, reason } = req.body;
-  const employeeId = req.user.id; // Galing sa auth middleware
-
-  let correctionType;
-
-  if (requestedTimeIn && requestedTimeOut) {
-    correctionType = 'BOTH';
-  } else if (requestedTimeIn) {
-    correctionType = 'TIME_IN';
-  } else if (requestedTimeOut) {
-    correctionType = 'TIME_OUT';
-  }
+  
+  // DIRECT CONVERSION: Huwag nang gumamit ng fromZonedTime
+  // Dahil ang string mula sa frontend ay "21:30...Z" na, 
+  // babasahin ito ni Prisma as-is.
+  const parseToDate = (dateStr) => {
+    if (!dateStr) return null;
+    return new Date(dateStr); 
+  };
 
   const newRequest = await prisma.attendanceCorrection.create({
     data: {
       attendanceId,
-      employeeId,
-      type: correctionType,
-      requestedTimeIn: requestedTimeIn ? new Date(requestedTimeIn) : null,
-      requestedTimeOut: requestedTimeOut ? new Date(requestedTimeOut) : null,
+      employeeId: req.user.id,
+      type: (requestedTimeIn && requestedTimeOut) ? 'BOTH' : requestedTimeIn ? 'TIME_IN' : 'TIME_OUT',
+      requestedTimeIn: parseToDate(requestedTimeIn),
+      requestedTimeOut: parseToDate(requestedTimeOut),
       reason,
-      status: 'PENDING' // Default via Enum
+      status: 'PENDING'
     }
   });
 
-  sendResponse(res, 201, newRequest, "Attendance correction request created successfully");
+  sendResponse(res, 201, newRequest, "Created successfully");
 });
 
 export const approveCorrection = catchAsync(async (req, res, next) => {

@@ -9,11 +9,11 @@ const AddDepartmentModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   const { createMutation } = useDepartments();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
-      defaultValues: {
-        name: "",
-        description: ""
-      }
-    });
+    defaultValues: {
+      name: "",
+      description: ""
+    }
+  });
 
   const onSubmit = (data: any) => {
     createMutation.mutate(data, {

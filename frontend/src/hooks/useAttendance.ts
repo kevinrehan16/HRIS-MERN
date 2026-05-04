@@ -20,7 +20,7 @@ export const useAttendance = (search: string = "") => {
   const overtimeRequestsQuery = useQuery({
     queryKey: ['overtime-requests', search],
     queryFn: () => AttendanceService.getAllOvertimeRequests(search),
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     staleTime: 1000 * 60 * 5,
     select: (response) => {
       return Array.isArray(response) ? response : response.data || [];

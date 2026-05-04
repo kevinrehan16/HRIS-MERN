@@ -29,11 +29,11 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
           isCollapsed ? 'px-0 justify-center' : 'px-4'
         } flex items-center border-b border-slate-200 gap-3 bg-white shrink-0 overflow-hidden`}>
           <div className="w-8 h-8 bg-purple-400 rounded-lg flex items-center justify-center text-white font-black italic text-[12px] shrink-0">
-            H
+            EP
           </div>
           {!isCollapsed && (
-            <span className="font-black text-slate-800 tracking-tighter text-sm uppercase opacity-70 whitespace-nowrap overflow-hidden">
-              HRIS.io
+            <span className="font-extrabold text-slate-800 tracking-tighter text-sm uppercase opacity-70 whitespace-nowrap overflow-hidden">
+              Employee Portal
             </span>
           )}
         </div>
@@ -95,7 +95,7 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
           <NavItem 
             isCollapsed={isCollapsed} 
             icon={<Clock size={18} />} 
-            label="Attendance" 
+            label="Approval Request" 
             subItems={[
               // LAGYAN NG "/" SA SIMULA:
               { label: "Daily Logs", to: "/portal/daily-logs" },

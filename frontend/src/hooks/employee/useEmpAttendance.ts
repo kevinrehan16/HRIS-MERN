@@ -16,9 +16,18 @@ export const useEmpAttendance = (search: string = "") => {
       return Array.isArray(response) ? response : response.data || [];
     }
   });
+  
+  const requestOverTimeMutation = useMutation({
+    mutationFn: ({ id, otStatus, otRemarks }: { id: number; otStatus?: string; otRemarks?: string }) => 
+      EmpAttendanceService.requestOverTime(id, otStatus, otRemarks),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+    }
+  });
 
 
   return { 
     myAttendanceQuery,
+    requestOverTimeMutation
   };
 };
