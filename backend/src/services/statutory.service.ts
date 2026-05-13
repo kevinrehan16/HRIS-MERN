@@ -15,12 +15,34 @@ export const calculatePagIBIG = (grossMonthly: number): number => {
 };
 
 export const calculateWithholdingTax = (taxableIncome: number): number => {
+  // 1. SAFETY GUARD: 
+  // Kapag ang income ay negative, zero, o hindi lumampas sa threshold, 0 tax agad.
+  if (taxableIncome <= 20833) {
+    return 0;
+  }
+
   const income = taxableIncome;
-  // TRAIN LAW Monthly Thresholds
-  if (income <= 20833) return 0; 
-  if (income <= 33333) return (income - 20833) * 0.15;
-  if (income <= 66667) return 1875 + (income - 33333) * 0.20;
-  if (income <= 166667) return 8541.67 + (income - 66667) * 0.25;
-  if (income <= 666667) return 33541.67 + (income - 166667) * 0.30;
-  return 183541.67 + (income - 666667) * 0.35;
+
+  // 2. TRAIN LAW MONTHLY THRESHOLDS
+  if (income <= 33333) {
+    return (income - 20833) * 0.15;
+  }
+  
+  if (income <= 66667) {
+    return 1875 + (income - 33333) * 0.20;
+  }
+  
+  if (income <= 166667) {
+    return 8541.67 + (income - 66667) * 0.25;
+  }
+  
+  if (income <= 666667) {
+    return 33541.67 + (income - 166667) * 0.30;
+  }
+
+  // 3. HIGHEST BRACKET
+  // Siguradong lampas 666,667 bago gamitin ang formula na ito.
+  // Ginamit natin ang Math.max(0, ...) dito bilang extra protection.
+  const excess = Math.max(0, income - 666667);
+  return 183541.67 + (excess * 0.35);
 };

@@ -128,26 +128,40 @@ model Schedule {
 }
 
 model LeaveRequest {
-  id           Int         @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   startDate    DateTime
   endDate      DateTime
-  type         LeaveType
-  reason       String      @db.Text
-  status       LeaveStatus @default(PENDING)
-  adminRemarks String?     // Bakit na-reject? O anong bilin ng Admin?
+  // Dagdag ito: Para madaling i-compute ang leave credits balance
+  totalDays    Decimal      @db.Decimal(10, 2) 
+  // Dagdag ito: Para sa mga 0.5 na leave
+  isHalfDay    Boolean      @default(false)
   
+  type         LeaveType
+  reason       String       @db.Text
+  status       LeaveStatus  @default(PENDING)
+  adminRemarks String?      
+  
+  // Dagdag ito: Para sa Medical Certificates o proof
+  attachmentUrl String?     
+
   // Relations
   employeeId   Int
-  employee     Employee    @relation(fields: [employeeId], references: [id])
+  employee     Employee     @relation(fields: [employeeId], references: [id])
   
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
 }
 
 model Payroll {
   id                  Int      @id @default(autoincrement())
   employeeId          Int
   employee            Employee @relation(fields: [employeeId], references: [id])
+
+  payrollPeriodId     Int
+  payrollPeriod       PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
   
   periodStart         DateTime
   periodEnd           DateTime
@@ -175,6 +189,22 @@ model Payroll {
   status              PayrollStatus  @default(PENDING) // PENDING, PAID, VOID
   remarks             String?       @db.Text // <--- Added for audit trail
   createdAt           DateTime @default(now())
+}
+
+model PayrollPeriod {
+  id              Int           @id @default(autoincrement())
+  periodName      String        // e.g., "May 2026 - 1st Half"
+  startDate       DateTime      // e.g., 2026-05-01
+  endDate         DateTime      // e.g., 2026-05-15
+  payoutDate      DateTime      // e.g., 2026-05-20 (Araw ng sweldo)
+  status          PeriodStatus  @default(OPEN)
+  payrollType     String        @default("REGULAR") // REGULAR, 13TH_MONTH, BONUS
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relation para malaman kung sinong employees ang kasama sa batch na ito
+  payrolls        Payroll[]
+  progress        Int           @default(0)
 }
 
 model Holiday {
@@ -304,4 +334,11 @@ enum EmploymentType {
   PART_TIME
   PROJECT_BASED
   INTERN
+}
+
+enum PeriodStatus {
+  OPEN       // Pwedeng mag-input ng adjustments/attendance
+  PROCESSING // Kasalukuyang naga-generate (Locked for edits)
+  COMPLETED  // Tapos na, bawal na baguhin (Posted)
+  REVERSED   // Na-cancel ang buong batch
 }

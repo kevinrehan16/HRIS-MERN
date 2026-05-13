@@ -24,6 +24,10 @@ import EmployeeLayout from './components/layouts/EmployeeLayout';
 import EmpDashboard from './pages/employee/dashboard/Dashboard';
 import MyProfile from './pages/employee/my-profile/MyProfile';
 import DailyLogs from './pages/employee/attendance/DailyLogs';
+import EmpLeave from './pages/employee/leave/EmpLeave';
+import EmpAttendanceCorrection from './pages/employee/approval/EmpAttendanceCorrection';
+import EmpLeaveRequest from './pages/employee/approval/EmpLeaveRequest';
+import EmpOvertimeRequest from './pages/employee/approval/EmpOvertimeRequest';
 
 import FaceClock from './components/modals/FaceClockModal';
 
@@ -111,6 +115,10 @@ function App() {
           <Route path="dashboard" element={<EmpDashboard />} />
           <Route path="my-profile" element={<MyProfile />} />
           <Route path="attendance" element={<DailyLogs />} />
+          <Route path="correction-requests" element={<EmpAttendanceCorrection />} />
+          <Route path="leave-requests" element={<EmpLeaveRequest />} />
+          <Route path="overtime-requests" element={<EmpOvertimeRequest />} />
+          <Route path="leave" element={<EmpLeave />} />
         </Route>
 
         {/* FALLBACK */}

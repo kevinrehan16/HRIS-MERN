@@ -9,6 +9,7 @@ export const ROUTES = {
   LEAVE: `${API_PREFIX}/leave`,
   LEAVE_REQUEST: `${API_PREFIX}/leave-request`,
   PAYROLL: `${API_PREFIX}/payroll`,
+  PAYROLL_PERIODS: `${API_PREFIX}/payroll-periods`,
   POSITIONS: `${API_PREFIX}/positions`,
   HOLIDAYS: `${API_PREFIX}/holidays`,
   ATTENDANCE_CORRECTION: `${API_PREFIX}/attendance-correction`,

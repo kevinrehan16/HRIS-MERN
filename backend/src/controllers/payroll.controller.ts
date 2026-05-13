@@ -4,7 +4,8 @@ import prisma from '../config/db.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { AppError } from '../utils/AppError.js';
-import { calculateSSS, calculatePhilHealth, calculatePagIBIG, calculateWithholdingTax } from '../services/statutory.service.js';
+import { generateBatchPayroll } from '../services/payroll.service.js';
+import { getAllPeriods, createPeriod } from '../services/payrollPeriod.service.js';
 
 // Helper function para sa Night Diff (10PM - 6AM)
 export const getNightDiffMinutes = (timeIn: Date, timeOut: Date): number => {
@@ -26,6 +27,25 @@ export const getNightDiffMinutes = (timeIn: Date, timeOut: Date): number => {
 
   return nightDiffMins;
 };
+
+export const createPayrollPeriod = catchAsync(async (req: Request, res: Response) => {
+  const { periodName, startDate, endDate, payoutDate, payrollType } = req.body;
+
+  const result = await createPeriod({
+    periodName,
+    startDate: new Date(startDate),
+    endDate: new Date(endDate),
+    payoutDate: new Date(payoutDate),
+    payrollType
+  });
+
+  sendResponse(res, 201, result, "Payroll Period created successfully");
+});
+
+export const getPeriods = catchAsync(async (req: Request, res: Response) => {
+  const result = await getAllPeriods();
+  sendResponse(res, 200, result, "Fetched all payroll periods");
+});
 
 // export const generatePayroll = catchAsync(async (req: Request, res: Response) => {
 //   const { periodStart, periodEnd, extraBonusMonths = 0 } = req.body; // Pwedeng ipasa kung may 14th-16th month
@@ -154,107 +174,118 @@ export const getNightDiffMinutes = (timeIn: Date, timeOut: Date): number => {
 //   sendResponse(res, 201, result, `Generated for ${employees.length} employees with Bonuses & Night Diff.`);
 // });
 
-export const generatePayroll = catchAsync(async (req: Request, res: Response) => {
-  const { periodStart, periodEnd } = req.body;
+// export const generatePayroll = catchAsync(async (req: Request, res: Response) => {
+//   const { periodStart, periodEnd } = req.body;
 
-  const startDate = new Date(periodStart);
-  startDate.setUTCHours(0, 0, 0, 0);
-  const endDate = new Date(periodEnd);
-  endDate.setUTCHours(23, 59, 59, 999);
+//   const startDate = new Date(periodStart);
+//   startDate.setUTCHours(0, 0, 0, 0);
+//   const endDate = new Date(periodEnd);
+//   endDate.setUTCHours(23, 59, 59, 999);
 
-  const isEndOfMonth = endDate.getUTCDate() > 15;
+//   const isEndOfMonth = endDate.getUTCDate() > 15;
 
-  const employees = await prisma.employee.findMany({
-    include: {
-      attendances: { where: { date: { gte: startDate, lte: endDate } } },
-      leaves: { where: { status: 'APPROVED', startDate: { lte: endDate }, endDate: { gte: startDate } } }
-    }
-  });
+//   const employees = await prisma.employee.findMany({
+//     include: {
+//       attendances: { where: { date: { gte: startDate, lte: endDate } } },
+//       leaves: { where: { status: 'APPROVED', startDate: { lte: endDate }, endDate: { gte: startDate } } }
+//     }
+//   });
 
-  const payrolls = [];
+//   const payrolls = [];
 
-  for (const emp of employees) {
-    const monthlyBasic = emp.basicSalary || 0;
-    const monthlyAllowance = emp.allowance || 0;
-    const dailyRate = monthlyBasic / 22;
-    const hourlyRate = dailyRate / 8;
-    const semiMonthlyBasic = monthlyBasic / 2;
+//   for (const emp of employees) {
+//     const monthlyBasic = emp.basicSalary || 0;
+//     const monthlyAllowance = emp.allowance || 0;
+//     const dailyRate = monthlyBasic / 22;
+//     const hourlyRate = dailyRate / 8;
+//     const semiMonthlyBasic = monthlyBasic / 2;
 
-    // A. ATTENDANCE DEDUCTIONS
-    let daysPresent = 0, totalLateMins = 0, totalUndertimeMins = 0, totalOTMins = 0;
-    emp.attendances.forEach(att => {
-      daysPresent++;
-      totalLateMins += att.lateMinutes || 0;
-      totalUndertimeMins += att.undertimeMinutes || 0;
-      totalOTMins += att.overtimeMinutes || 0;
-    });
+//     // A. ATTENDANCE DEDUCTIONS
+//     let daysPresent = 0, totalLateMins = 0, totalUndertimeMins = 0, totalOTMins = 0;
+//     emp.attendances.forEach(att => {
+//       daysPresent++;
+//       totalLateMins += att.lateMinutes || 0;
+//       totalUndertimeMins += att.undertimeMinutes || 0;
+//       totalOTMins += att.overtimeMinutes || 0;
+//     });
 
-    let paidLeaveDays = 0;
-    emp.leaves.forEach(l => {
-      const s = l.startDate < startDate ? startDate : l.startDate;
-      const e = l.endDate > endDate ? endDate : l.endDate;
-      const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      paidLeaveDays += diff;
-    });
+//     let paidLeaveDays = 0;
+//     emp.leaves.forEach(l => {
+//       const s = l.startDate < startDate ? startDate : l.startDate;
+//       const e = l.endDate > endDate ? endDate : l.endDate;
+//       const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+//       paidLeaveDays += diff;
+//     });
 
-    const absentDeduction = Math.max(0, 11 - (daysPresent + paidLeaveDays)) * dailyRate;
-    const lateDeduction = (hourlyRate / 60) * totalLateMins;
-    const undertimeDeduction = (hourlyRate / 60) * totalUndertimeMins;
-    const totalAttendanceDeductions = absentDeduction + lateDeduction + undertimeDeduction;
+//     const absentDeduction = Math.max(0, 11 - (daysPresent + paidLeaveDays)) * dailyRate;
+//     const lateDeduction = (hourlyRate / 60) * totalLateMins;
+//     const undertimeDeduction = (hourlyRate / 60) * totalUndertimeMins;
+//     const totalAttendanceDeductions = absentDeduction + lateDeduction + undertimeDeduction;
 
-    const totalOTPay = (hourlyRate * 1.25) * (totalOTMins / 60);
+//     const totalOTPay = (hourlyRate * 1.25) * (totalOTMins / 60);
 
-    // B. STATUTORY
-    const sss = isEndOfMonth ? calculateSSS(monthlyBasic) : 0;
-    const philhealth = isEndOfMonth ? calculatePhilHealth(monthlyBasic) : 0;
-    const pagibig = isEndOfMonth ? calculatePagIBIG(monthlyBasic) : 0;
-    const totalGov = sss + philhealth + pagibig;
+//     // B. STATUTORY
+//     const sss = isEndOfMonth ? calculateSSS(monthlyBasic) : 0;
+//     const philhealth = isEndOfMonth ? calculatePhilHealth(monthlyBasic) : 0;
+//     const pagibig = isEndOfMonth ? calculatePagIBIG(monthlyBasic) : 0;
+//     const totalGov = sss + philhealth + pagibig;
 
-    // C. DYNAMIC TAX LOGIC
-    let withholdingTax = 0;
-    if (isEndOfMonth) {
-      // 1. Compute ACTUAL Monthly Taxable Income
-      const monthlyGross = monthlyBasic + totalOTPay + monthlyAllowance;
-      const actualTaxableIncomeMonthly = monthlyGross - totalGov - totalAttendanceDeductions;
+//     // C. DYNAMIC TAX LOGIC
+//     let withholdingTax = 0;
+//     if (isEndOfMonth) {
+//       // 1. Compute ACTUAL Monthly Taxable Income
+//       const monthlyGross = monthlyBasic + totalOTPay + monthlyAllowance;
+//       const actualTaxableIncomeMonthly = monthlyGross - totalGov - totalAttendanceDeductions;
 
-      // 2. Compute Full Monthly Tax
-      const fullMonthlyTax = calculateWithholdingTax(actualTaxableIncomeMonthly > 0 ? actualTaxableIncomeMonthly : 0);
+//       // 2. Compute Full Monthly Tax
+//       const fullMonthlyTax = calculateWithholdingTax(actualTaxableIncomeMonthly > 0 ? actualTaxableIncomeMonthly : 0);
 
-      // 3. Divide by 2 para mag-match sa Semi-Monthly display ng table mo
-      withholdingTax = fullMonthlyTax / 2;
-    }
+//       // 3. Divide by 2 para mag-match sa Semi-Monthly display ng table mo
+//       withholdingTax = fullMonthlyTax / 2;
+//     }
 
-    // D. FINAL CALCULATION
-    // AT kung ang absentDeduction ay 0 (Perfect Attendance).
-    const currentAllowance = (isEndOfMonth && absentDeduction === 0) ? monthlyAllowance : 0;
-    const grossEarnings = semiMonthlyBasic + totalOTPay + currentAllowance;
-    const periodDeductions = totalAttendanceDeductions + totalGov + withholdingTax;
-    const netPay = Math.max(0, grossEarnings - periodDeductions);
+//     // D. FINAL CALCULATION
+//     // AT kung ang absentDeduction ay 0 (Perfect Attendance).
+//     const currentAllowance = (isEndOfMonth && absentDeduction === 0) ? monthlyAllowance : 0;
+//     const grossEarnings = semiMonthlyBasic + totalOTPay + currentAllowance;
+//     const periodDeductions = totalAttendanceDeductions + totalGov + withholdingTax;
+//     const netPay = Math.max(0, grossEarnings - periodDeductions);
 
-    payrolls.push({
-      employeeId: emp.id,
-      periodStart: startDate,
-      periodEnd: endDate,
-      basicPay: Number(semiMonthlyBasic.toFixed(2)),
-      allowances: Number(currentAllowance.toFixed(2)),
-      overtimePay: Number(totalOTPay.toFixed(2)),
-      absentDeduction: Number(absentDeduction.toFixed(2)),
-      lateDeduction: Number(lateDeduction.toFixed(2)),
-      undertimeDeduction: Number(undertimeDeduction.toFixed(2)),
-      sss: Number(sss.toFixed(2)),
-      philhealth: Number(philhealth.toFixed(2)),
-      pagibig: Number(pagibig.toFixed(2)),
-      withholdingTax: Number(withholdingTax.toFixed(2)),
-      netPay: Number(netPay.toFixed(2)),
-      status: 'PENDING',
-      remarks: `Payroll generated for ${isEndOfMonth ? '2nd Half (Full Deductions)' : '1st Half (Basic Only)'}`
-    });
-  }
+//     payrolls.push({
+//       employeeId: emp.id,
+//       periodStart: startDate,
+//       periodEnd: endDate,
+//       basicPay: Number(semiMonthlyBasic.toFixed(2)),
+//       allowances: Number(currentAllowance.toFixed(2)),
+//       overtimePay: Number(totalOTPay.toFixed(2)),
+//       absentDeduction: Number(absentDeduction.toFixed(2)),
+//       lateDeduction: Number(lateDeduction.toFixed(2)),
+//       undertimeDeduction: Number(undertimeDeduction.toFixed(2)),
+//       sss: Number(sss.toFixed(2)),
+//       philhealth: Number(philhealth.toFixed(2)),
+//       pagibig: Number(pagibig.toFixed(2)),
+//       withholdingTax: Number(withholdingTax.toFixed(2)),
+//       netPay: Number(netPay.toFixed(2)),
+//       status: 'PENDING',
+//       remarks: `Payroll generated for ${isEndOfMonth ? '2nd Half (Full Deductions)' : '1st Half (Basic Only)'}`
+//     });
+//   }
 
-  await prisma.payroll.deleteMany({ where: { periodStart: startDate, periodEnd: endDate, status: 'PENDING' } });
-  const result = await prisma.payroll.createMany({ data: payrolls });
+//   await prisma.payroll.deleteMany({ where: { periodStart: startDate, periodEnd: endDate, status: 'PENDING' } });
+//   const result = await prisma.payroll.createMany({ data: payrolls });
   
-  sendResponse(res, 201, result, `Payroll generated for ${isEndOfMonth ? '2nd Half (Full Deductions)' : '1st Half (Basic Only)'}`);
+//   sendResponse(res, 201, result, `Payroll generated for ${isEndOfMonth ? '2nd Half (Full Deductions)' : '1st Half (Basic Only)'}`);
+// });
+
+export const generatePayroll = catchAsync(async (req: Request, res: Response) => {
+  // 1. Kuha lang ng ID mula sa body
+  const { payrollPeriodId } = req.body;
+
+  // 2. Tawagin ang service function (yung Brain)
+  const result = await generateBatchPayroll(Number(payrollPeriodId));
+  
+  // 3. Send response
+  sendResponse(res, 201, result, "Payroll batch generated successfully.");
 });
 
 // --- 3. NEW: APPROVE PAYROLL FUNCTION ---
@@ -453,9 +484,10 @@ export const getAllPayrolls = catchAsync(async (req: Request, res: Response) => 
       },
     },
     // Laging unahin ang pinakabagong payroll records
-    orderBy: {
-      periodEnd: 'desc',
-    },
+    orderBy: [
+      { periodEnd: 'desc' },
+      { id: 'desc' }
+    ]
   });
 
   // Pwede tayong mag-transform dito kung kailangan ng custom totals sa frontend

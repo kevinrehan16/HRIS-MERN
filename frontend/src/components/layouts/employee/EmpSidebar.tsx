@@ -1,5 +1,5 @@
 import React from 'react'
-import { LayoutDashboard, Calendar, FileText, Fingerprint, LogOut, Clock, IdCardLanyard } from 'lucide-react'
+import { LayoutDashboard, Calendar, MonitorCheck, FileText, Fingerprint, LogOut, Clock, IdCardLanyard } from 'lucide-react'
 
 import { getInitials } from '../../../utils/formatters'
 import { useAuthStore } from '../../../store/authStore'
@@ -87,24 +87,30 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
 
           <NavItem 
             isCollapsed={isCollapsed} 
-            to="/portal/Attendance" // Profile link
+            to="/portal/attendance" // Profile link
             icon={<Clock size={18} />} 
             label="Attendance" 
           />
 
           <NavItem 
             isCollapsed={isCollapsed} 
-            icon={<Clock size={18} />} 
+            to="/portal/leave" // Profile link
+            icon={<Calendar size={18} />} 
+            label="Leave" 
+          />
+
+          <NavItem 
+            isCollapsed={isCollapsed} 
+            icon={<MonitorCheck size={18} />} 
             label="Approval Request" 
             subItems={[
               // LAGYAN NG "/" SA SIMULA:
-              { label: "Daily Logs", to: "/portal/daily-logs" },
-              { label: "Attendance History", to: "/portal/attendance-history" },
-              { label: "Overtime Records", to: "/portal/overtime" }
+              { label: "Correction Requests", to: "/portal/correction-requests" },
+              { label: "Leave Requests", to: "/portal/leave-requests" },
+              { label: "Overtime Requests", to: "/portal/overtime-requests" }
             ]}
           />
 
-          <NavItem isCollapsed={isCollapsed} to="/leave" icon={<Calendar size={18} />} label="Leave" />
           <NavItem isCollapsed={isCollapsed} to="/payslips" icon={<FileText size={18} />} label="Payslips" />
           <NavItem isCollapsed={isCollapsed} to="/requests" icon={<Fingerprint size={18} />} label="Requests" />
         </nav>

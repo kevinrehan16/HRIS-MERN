@@ -17,6 +17,7 @@ import attendanceRoutes from './routes/attendance.routes.js';
 import leaveRoutes from './routes/leave.routes.js'
 import leaveRequestRoutes from './routes/leaveRequest.routes.js';
 import payrollRoutes from './routes/payroll.routes.js';
+import payrollPeriodRoutes from './routes/payrollPeriod.routes.js';
 import positionRoutes from './routes/position.routes.js';
 import holidayRoutes from './routes/holiday.routes.js';
 import attendanceCorrectionRoutes from './routes/attendanceCorrection.routes.js';
@@ -49,6 +50,7 @@ app.use(ROUTES.ATTENDANCE, attendanceRoutes);
 app.use(ROUTES.LEAVE, leaveRoutes);
 app.use(ROUTES.LEAVE_REQUEST, leaveRequestRoutes);
 app.use(ROUTES.PAYROLL, payrollRoutes);
+app.use(ROUTES.PAYROLL_PERIODS, payrollPeriodRoutes);
 app.use(ROUTES.POSITIONS, positionRoutes);
 app.use(ROUTES.HOLIDAYS, holidayRoutes);
 app.use(ROUTES.ATTENDANCE_CORRECTION, attendanceCorrectionRoutes);

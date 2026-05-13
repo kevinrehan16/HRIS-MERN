@@ -14,7 +14,15 @@ export const usePayroll = (search: string = "") => {
     }
   });
 
+  const generatePayrollMutation = useMutation({
+    mutationFn: ({ payrollPeriodId } : { payrollPeriodId: number }) => PayrollService.generate(payrollPeriodId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payroll'] });
+    }
+  });
+
   return { 
-    payrollQuery
+    payrollQuery,
+    generatePayrollMutation
   };
 };

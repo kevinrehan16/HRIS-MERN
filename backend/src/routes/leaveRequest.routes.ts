@@ -8,9 +8,9 @@ const router = Router();
 router.use(protect); // Lahat dapat logged in
 
 // ROUTES PARA SA EMPLOYEE
-router.post('/apply', applyLeave);
-router.get('/my-leaves', getMyLeaves);
-router.patch('/:id/cancel', cancelMyLeave); // CANCEL leave request by employee...
+router.post('/apply', protect, applyLeave);
+router.get('/my-leaves', protect, getMyLeaves);
+router.patch('/:id/cancel', protect, cancelMyLeave); // CANCEL leave request by employee...
 
 // ROUTES PARA SA ADMIN ONLY
 router.get('/all-requests', restrictTo('ADMIN'), getAllLeaveRequests);

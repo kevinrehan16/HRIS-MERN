@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { generatePayroll, approvePayroll, markAsPaid, voidPayroll, getMyPayrolls, getPayrollSummary, getAllPayrolls } from '../controllers/payroll.controller.js';
+
+import { getPeriod } from '../controllers/payrollPeriodController.js';
 import { protect, restrictTo } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -13,6 +15,7 @@ router.post('/generate', protect, restrictTo('ADMIN'), generatePayroll);
 router.patch('/approve', protect, restrictTo('ADMIN'), approvePayroll);
 router.patch('/pay', protect, restrictTo('ADMIN'), markAsPaid);
 router.patch('/void', protect, restrictTo('ADMIN'), voidPayroll);
+
 // Dashboard summary for Admins
 router.get('/summary', protect, restrictTo('ADMIN'), getPayrollSummary);
 

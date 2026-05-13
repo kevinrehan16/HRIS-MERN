@@ -1,21 +1,38 @@
 import React, { useState } from 'react';
-import { Wallet, Plus, SearchIcon, Eye, Download } from 'lucide-react';
+import { Wallet, BanknoteArrowDown, SearchIcon, Eye, Download, CalendarRange } from 'lucide-react';
 
 import { getInitials, getMonthShort, getDayNumber } from '../../../utils/formatters';
 import { usePayroll } from '../../../hooks/usePayroll';
 import { notificationService } from '../../../utils/notifications';
+
+import AddPayrollPeriodModal from '../../../components/modals/AddPayrollPeriodModal';
+import GeneratePayrollModal from '../../../components/modals/GeneratePayrollModal';
 
 import PageHeader from '../../../components/common/PageHeader';
 import TableSkeleton from '../../../components/common/TableSkeleton';
 import NoDataFound from '../../../components/common/NoDataFound';
 
 const Payroll = () => {
-  const { payrollQuery } = usePayroll();
+  const { payrollQuery, generatePayrollMutation } = usePayroll();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddPayrollPeriodModalOpen, setIsAddPayrollPeriodModalOpen] = useState(false);
+  const [isGeneratePayrollModalOpen, setIsGeneratePayrollModalOpen] = useState(false);
 
   const { data: payrolls, isLoading, isError } = payrollQuery;
 
-  console.log("Data: " + payrolls);
+  const generatePayroll = () => {
+    const periodStart = "2026-06-16";
+    const periodEnd = "2026-06-30";
+    
+    generatePayrollMutation.mutate({ periodStart, periodEnd }, {
+      onSuccess: () => {
+        console.log('Payroll generated successfully!');
+      },
+      onError: (error) => {
+        console.log('Failed to generate payroll. Please try again.', error);
+      }
+    });
+  }
 
   return (
     <div className="bg-[#f2f5f9] h-screen flex flex-col overflow-hidden">
@@ -46,10 +63,16 @@ const Payroll = () => {
             </div>
             <div className="flex items-center gap-3">
               <button
-                // onClick={() => handleAddNewClick()}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 !rounded-lg font-semibold shadow-lg shadow-blue-200 transition-all active:scale-95 shrink-0 text-xs"
+                onClick={() => setIsAddPayrollPeriodModalOpen(true)}
+                className="flex items-center gap-2 bg-slate-600 hover:bg-slate-700 text-white px-4 py-1.5 !rounded-lg font-semibold shadow-lg shadow-slate-200 transition-all active:scale-95 shrink-0 text-xs"
               >
-                <Plus size={16} /> Add Corrections
+                <CalendarRange size={16} /> Add Payroll Period
+              </button>
+              <button
+                onClick={() => setIsGeneratePayrollModalOpen(true)}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 !rounded-lg font-semibold shadow-lg shadow-emerald-200 transition-all active:scale-95 shrink-0 text-xs"
+              >
+                <BanknoteArrowDown size={16} /> Generate Payroll
               </button>
             </div>
           </div>
@@ -63,12 +86,12 @@ const Payroll = () => {
                   <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 text-emerald-500 bg-slate-700 text-end border-b border-emerald-100">Salary</th>
                   <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 text-emerald-500 bg-slate-700 text-end border-b border-emerald-100">OverTime</th>
                   <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 text-rose-500 bg-slate-700 text-end border-b border-rose-100">Withholding Tax</th>
-                  <th style={{ width: '17%' }} className="px-4 py-3 sticky top-0 text-rose-500 bg-slate-700 text-end border-b border-rose-100">Statutory (S/P/PI)</th>
+                  <th style={{ width: '19%' }} className="px-4 py-3 sticky top-0 text-rose-500 bg-slate-700 text-end border-b border-rose-100">Statutory (S/P/PI)</th>
                   <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 text-rose-500 bg-slate-700 text-end border-b border-rose-100">Absences</th>
                   <th style={{ width: '10%' }} className="px-4 py-3 sticky top-0 text-indigo-500 bg-slate-700 text-end border-b border-indigo-100">Net Pay</th>
                   <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 bg-slate-700 border-b border-slate-100 font-extrabold text-center">CutOff</th>
-                  <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 bg-slate-700 border-b border-slate-100 font-extrabold text-center">Status</th> 
-                  <th style={{ width: '9%' }} className="px-4 py-3 sticky top-0 bg-slate-700 border-b border-slate-100 font-extrabold">Action</th>
+                  <th style={{ width: '8%' }} className="px-4 py-3 sticky top-0 bg-slate-700 border-b border-slate-100 font-extrabold text-center">Status</th> 
+                  <th style={{ width: '8%' }} className="px-4 py-3 sticky top-0 bg-slate-700 border-b border-slate-100 font-extrabold">Action</th>
                   
                 </tr>
               </thead>
@@ -208,6 +231,16 @@ const Payroll = () => {
         </div>
 
       </div>
+
+      <AddPayrollPeriodModal 
+        isOpen={isAddPayrollPeriodModalOpen}
+        onClose={() => setIsAddPayrollPeriodModalOpen(false)}
+      />
+
+      <GeneratePayrollModal 
+        isOpen={isGeneratePayrollModalOpen}
+        onClose={() => setIsGeneratePayrollModalOpen(false)}
+      />
     </div>
   );
 };

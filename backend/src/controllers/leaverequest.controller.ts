@@ -18,12 +18,19 @@ const getDaysBetween = (start: Date, end: Date) => {
 export const getMyLeaves = catchAsync(async (req: any, res: Response) => {
   const employeeId = req.user.id;
 
-  const leaves = await prisma.leaveRequest.findMany({
-    where: { employeeId },
-    orderBy: { createdAt: 'desc' } // Pinakabago ang mauuna
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: {
+      leaveCredits: true,
+      leaves: {
+        orderBy: { createdAt: 'desc' }
+      }
+    }
   });
 
-  sendResponse(res, 200, leaves, "Your leave history retrieved.");
+  if (!employee) throw new AppError("Employee not found", 404);
+
+  sendResponse(res, 200, employee, "Your leave history retrieved.");
 });
 
 // 2. Para sa Admin: Makikita ang LAHAT ng requests sa kumpanya
@@ -52,43 +59,51 @@ export const getAllLeaveRequests = catchAsync(async (req: any, res: Response) =>
 });
 
 export const applyLeave = catchAsync(async (req: any, res: Response) => {
-  const { startDate, endDate, type, reason } = req.body;
+  // 1. Idagdag ang isHalfDay sa destructuring
+  const { startDate, endDate, type, reason, isHalfDay } = req.body;
   const employeeId = req.user.id;
 
   const start = new Date(startDate);
-  const end = new Date(endDate);
-  const diffDays = getDaysBetween(start, end);
+  let end = new Date(endDate);
+  let diffDays = 0;
 
-  // 1. Kunin ang Employee at ang lahat ng PENDING leaves niya
+  // 2. Half Day Logic
+  if (isHalfDay) {
+    diffDays = 0.5;
+    end = start; // Sa half day, iisang araw lang ang start at end
+  } else {
+    diffDays = getDaysBetween(start, end);
+  }
+
+  // 3. Kunin ang Employee at ang lahat ng PENDING leaves niya
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
     include: {
       leaves: {
-        where: { status: 'PENDING' }
+        where: { status: 'PENDING' },
+        select: { totalDays: true }
       }
     }
   });
 
   if (!employee) throw new AppError("Employee not found", 404);
 
-  // 2. Compute total PENDING days
+  // 4. Compute total PENDING days
   const pendingDays = employee.leaves.reduce((sum, leave) => {
-    return sum + getDaysBetween(leave.startDate, leave.endDate);
+    return sum + Number(leave.totalDays);
   }, 0);
 
-  // 3. Check: (Pending + New Request) vs (Available Credits)
+  // 5. Check: (Pending + New Request) vs (Available Credits)
   const totalAttempted = pendingDays + diffDays;
 
   if (employee.leaveCredits < totalAttempted) {
     throw new AppError(
-      `Insufficient credits. You have ${employee.leaveCredits} days, but you already have 
-      ${pendingDays} days pending approval. This new request of ${diffDays} day(s) will exceed your 
-      limit.`,
+      `Insufficient credits. You have ${employee.leaveCredits} days left, but you already have ${pendingDays} days pending approval. This new request of ${diffDays} day(s) will exceed your limit.`,
       400
     );
   }
 
-  // 4. Proceed to create
+  // 6. Proceed to create
   const leave = await prisma.leaveRequest.create({
     data: {
       employeeId,
@@ -96,10 +111,12 @@ export const applyLeave = catchAsync(async (req: any, res: Response) => {
       endDate: end,
       type,
       reason,
+      totalDays: diffDays,
+      isHalfDay: isHalfDay || false
     }
   });
 
-  sendResponse(res, 201, leave, "Leave request submitted.");
+  sendResponse(res, 201, leave, `Leave request submitted for ${diffDays} day(s).`);
 });
 
 export const updateLeaveStatus = catchAsync(async (req: any, res: Response) => {
@@ -113,50 +130,57 @@ export const updateLeaveStatus = catchAsync(async (req: any, res: Response) => {
 
   if (!leave) throw new AppError("Leave request not found.", 404);
 
+  // Huwag payagan ang modification kung tapos na (Cancelled/Rejected/Approved na dati pa)
+  // Pero depende ito sa business logic mo kung pwede i-reverse ang Approved
   if (leave.status === 'CANCELLED') {
     throw new AppError("Cannot modify a cancelled request.", 400);
   }
 
-  // 1. GUMAMIT NG ISANG CALCULATION LANG PARA SA LAHAT (UTC)
-  const s = Date.UTC(leave.startDate.getUTCFullYear(), leave.startDate.getUTCMonth(), leave.startDate.getUTCDate());
-  const e = Date.UTC(leave.endDate.getUTCFullYear(), leave.endDate.getUTCMonth(), leave.endDate.getUTCDate());
-  const exactDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+  // 1. Gamitin ang totalDays na na-save noong applyLeave.
+  // Siguraduhin na ang leave.totalDays ay Number (parseFloat kung galing sa Decimal field)
+  const daysToAdjust = Number(leave.totalDays);
 
   const result = await prisma.$transaction(async (tx) => {
     
-    // A. PENDING -> APPROVED (Deduct)
+    // A. PENDING -> APPROVED (Deduct Credits)
     if (leave.status === 'PENDING' && status === 'APPROVED') {
-      // Re-fetch employee credits inside transaction for accuracy
       const emp = await tx.employee.findUnique({ where: { id: leave.employeeId } });
       
-      if (!emp || emp.leaveCredits < exactDays) {
-        throw new AppError(`Cannot approve. Employee only has ${emp?.leaveCredits} credits but needs ${exactDays}.`, 400);
+      if (!emp || emp.leaveCredits < daysToAdjust) {
+        throw new AppError(
+          `Insufficient credits. Employee has ${emp?.leaveCredits} but needs ${daysToAdjust}.`, 
+          400
+        );
       }
 
       await tx.employee.update({
         where: { id: leave.employeeId },
-        data: { leaveCredits: { decrement: exactDays } }
+        data: { leaveCredits: { decrement: daysToAdjust } }
       });
     }
 
-    // B. APPROVED -> REJECTED or CANCELLED (Refund)
-    // Gamitin din ang exactDays dito para fair ang refund
+    // B. APPROVED -> REJECTED or CANCELLED (Refund Credits)
+    // Kung dati nang approved at biglang binawi, ibabalik ang kinuha (0.5 o 1 o higit pa)
     if (leave.status === 'APPROVED' && (status === 'REJECTED' || status === 'CANCELLED')) {
       await tx.employee.update({
         where: { id: leave.employeeId },
-        data: { leaveCredits: { increment: exactDays } } 
+        data: { leaveCredits: { increment: daysToAdjust } } 
       });
     }
 
+    // C. I-update ang status ng request
     return await tx.leaveRequest.update({
       where: { id: Number(id) },
       data: { status, adminRemarks }
     });
   });
 
-  // TODO: Dito pwedeng mag-send ng Email notification sa employee!
-
-  sendResponse(res, 200, result, `Leave status updated to ${status}. ${exactDays} day(s) adjusted.`);
+  sendResponse(
+    res, 
+    200, 
+    result, 
+    `Leave status updated to ${status}. ${daysToAdjust} day(s) ${status === 'APPROVED' ? 'deducted' : 'adjusted'}.`
+  );
 });
 
 export const cancelMyLeave = catchAsync(async (req: any, res: Response) => {

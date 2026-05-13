@@ -7,5 +7,12 @@ export const PayrollService = {
     });
     return response.data;
   },
+
+  generate: async (payrollPeriodId: number) => {
+    const response = await api.post('/payroll/generate', {
+      payrollPeriodId
+    });
+    return response.data;
+  }
   
 };

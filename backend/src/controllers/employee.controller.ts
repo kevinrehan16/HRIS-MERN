@@ -8,16 +8,16 @@ import { catchAsync } from '../utils/catchAsync.js';
 import { AppError } from '../utils/appError.js';
 
 // 1. REGISTER (Clean with Repository)
-export const registerEmployee = catchAsync(async (req: Request, res: Response) => {
-    const existing = await EmployeeRepo.findEmployeeByEmail(req.body.email);
-    if (existing) {
-        // Gumamit tayo ng return dito para hindi na tumuloy ang code
-        throw new AppError("Email already registered in the system", 400);
-    }
+// export const registerEmployee = catchAsync(async (req: Request, res: Response) => {
+//     const existing = await EmployeeRepo.findEmployeeByEmail(req.body.email);
+//     if (existing) {
+//         // Gumamit tayo ng return dito para hindi na tumuloy ang code
+//         throw new AppError("Email already registered in the system", 400);
+//     }
 
-    const newEmployee = await EmployeeRepo.createEmployee(req.body);
-    sendResponse(res, 201, newEmployee, "Employee Registered!");
-});
+//     const newEmployee = await EmployeeRepo.createEmployee(req.body);
+//     sendResponse(res, 201, newEmployee, "Employee Registered!");
+// });
 
 // 2. GET ALL (Enterprise standard - with relations)
 export const getAllEmployees = catchAsync(async (req: Request, res: Response) => {
