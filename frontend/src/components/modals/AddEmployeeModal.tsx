@@ -620,7 +620,66 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               </div>
             )}
 
-            {/* EMPLOYMENT INFORMATION TAB */}
+            {/* ADDRESS INFORMATION TAB */}
+            {activeTab === 'address' && (
+              <div className="space-y-6 animate-in slide-in-from-right-4">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-lg font-bold text-slate-800">Address Details</h4>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 5 of 5</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Department Dropdown */}
+                  <FormInput 
+                    label="Region"
+                    placeholder="Region here..."
+                    reqField={false}
+                    // {...register("bankName")} 
+                  />
+
+                  {/* Position Dropdown */}
+                  <FormInput 
+                    label="Province"
+                    placeholder="Province here..."
+                    reqField={false}
+                    // {...register("bankAccountNo")} 
+                  />
+
+                  {/* Position Dropdown */}
+                  <FormInput 
+                    label="Municipality"
+                    placeholder="Municipality here..."
+                    reqField={false}
+                    // {...register("bankAccountNo")} 
+                  />
+
+                  {/* Position Dropdown */}
+                  <FormInput 
+                    label="Barangay"
+                    placeholder="Barangay here..."
+                    reqField={false}
+                    // {...register("bankAccountNo")} 
+                  />
+
+                  <FormInput 
+                    label="street"
+                    placeholder="Street here..."
+                    reqField={false}
+                    // {...register("bankAccountNo")} 
+                  />
+
+                  <FormInput 
+                    label="ZIP Code"
+                    placeholder="zipcode here..."
+                    reqField={false}
+                    // {...register("bankAccountNo")} 
+                  />
+                </div>
+
+              </div>
+            )}
+
+            {/* BANK INFORMATION TAB */}
             {activeTab === 'bankaccount' && (
               <div className="space-y-6 animate-in slide-in-from-right-4">
                 <div className="flex items-center justify-between">
@@ -633,7 +692,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                   <FormInput 
                     label="Bank Account Name"
                     placeholder="Bank name here..."
-                    reqField={true}
+                    reqField={false}
                     {...register("bankName")} 
                   />
 
@@ -641,7 +700,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                   <FormInput 
                     label="Bank Account Number"
                     placeholder="Bank number here..."
-                    reqField={true}
+                    reqField={false}
                     {...register("bankAccountNo")} 
                   />
                 </div>
