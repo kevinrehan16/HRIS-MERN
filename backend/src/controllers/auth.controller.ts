@@ -13,7 +13,10 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     email, password, birthDate, gender, civilStatus, contactNo,
     tinNo, sssNo, philhealthNo, pagibigNo,
     departmentId, positionId, scheduleId,
-    status, employmentType, basicSalary, allowance, leaveCredits 
+    status, employmentType, basicSalary, allowance, leaveCredits,
+    bankAccountNo, bankName,
+    emergencyContact, emergencyName, emergencyRelation,
+    managerId, profileImage
   } = req.body;
 
   // 2. Uniqueness Checks (Dahil @unique ang mga ito sa DB)
@@ -65,7 +68,14 @@ export const register = catchAsync(async (req: Request, res: Response) => {
       employmentType,
       basicSalary,
       allowance,
-      leaveCredits
+      leaveCredits,
+      bankAccountNo,
+      bankName,
+      emergencyContact,
+      emergencyName,
+      emergencyRelation,
+      managerId,
+      profileImage
     }
   });
 

@@ -59,6 +59,13 @@ export const registerSchema = z.object({
     leaveCredits: z.preprocess((val) => (val === "" ? 15 : Number(val)), 
       z.number().min(0).default(15)
     ),
+    bankAccountNo: z.string().optional().nullable(),
+    bankName: z.string().optional().nullable(),
+    emergencyContact: z.string().optional().nullable(),
+    emergencyName: z.string().optional().nullable(),
+    emergencyRelation: z.string().optional().nullable(),
+    managerId: z.number().optional().nullable(),
+    profileImage: z.string().optional().nullable(),
   }),
 });
 
