@@ -1,4 +1,4 @@
-import { X, User, Briefcase, CreditCard, MapPin, Loader2, IdCard, Save, AlertCircle } from 'lucide-react';
+import { X, User, Briefcase, CreditCard, MapPin, Loader2, IdCard, Save, AlertCircle, Info } from 'lucide-react';
 import { Alert } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -40,6 +40,11 @@ interface EmployeeFormInput {
   gender: string;
   civilStatus: string;
   contactNo: string;
+  emergencyName: string;
+  emergencyContact: string;
+  emergencyRelation: string;
+  bankName: string;
+  bankAccountNo: string;
   tinNo: string;
   sssNo: string;
   philhealthNo: string;
@@ -87,6 +92,11 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
           gender: initialData.gender,
           civilStatus: initialData.civilStatus,
           contactNo: initialData.contactNo,
+          emergencyName: initialData.emergencyName,
+          emergencyContact: initialData.emergencyContact,
+          emergencyRelation: initialData.emergencyRelation,
+          bankName: initialData.bankName,
+          bankAccountNo: initialData.bankAccountNo,
           tinNo: initialData.tinNo,
           sssNo: initialData.sssNo,
           philhealthNo: initialData.philhealthNo,
@@ -115,6 +125,11 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
           gender: "",
           civilStatus: "",
           contactNo: "",
+          emergencyName: "",
+          emergencyContact: "",
+          emergencyRelation: "",
+          bankName: "",
+          bankAccountNo: "",
           tinNo: "",
           sssNo: "",
           philhealthNo: "",
@@ -227,7 +242,13 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               </button>
             ))}
             <Alert variant="primary" className='mt-2'>
-              <p className="text-[13px] text-slate-700 leading-relaxed font-medium">Make sure all required fields marked with <span className='text-red-600 text-md'>*</span> are filled out correctly.</p>
+              <div className='flex gap-2'>
+                {/* Pinaliit ko yung icon at tinanggal ko yung justify-between */}
+                <Info className='text-blue-500' size={20}/> 
+                <p className="text-[12px] text-slate-500 leading-relaxed font-medium">
+                  Make sure all required fields marked with <span className='text-red-600 text-md'>*</span> are filled out correctly.
+                </p>
+              </div>
             </Alert>
           </div>
 
@@ -237,7 +258,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <h4 className="text-lg font-bold text-slate-800">Personal Information</h4>
-                    <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 1 of 4</span>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 1 of 5</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -344,6 +365,32 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormInput
+                    label="Emergency Name"
+                    placeholder="Enter full name"
+                    error={errors.emergencyName}
+                    reqField={false}
+                    {...register("emergencyName")}
+                  />
+
+                  <FormInput
+                    label="Emergency Contact"
+                    placeholder="(+63) 000-000-0000"
+                    error={errors.emergencyContact}
+                    reqField={false}
+                    {...register("emergencyContact")}
+                  />
+
+                  <FormInput
+                    label="Emergency Relation"
+                    placeholder="Relationship"
+                    error={errors.emergencyRelation}
+                    reqField={false}
+                    {...register("emergencyRelation")}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormInput
                     label="Email Address"
                     type="email"
                     reqField={true}
@@ -414,7 +461,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               <div className="space-y-6 animate-in slide-in-from-right-4">
                 <div className="flex items-center justify-between">
                     <h4 className="text-lg font-bold text-slate-800">Government IDs</h4>
-                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 2 of 4</span>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 2 of 5</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -470,7 +517,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               <div className="space-y-6 animate-in slide-in-from-right-4">
                 <div className="flex items-center justify-between">
                     <h4 className="text-lg font-bold text-slate-800">Employment Details</h4>
-                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 3 of 4</span>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 3 of 5</span>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -569,6 +616,35 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                   />
                 </div>
 
+
+              </div>
+            )}
+
+            {/* EMPLOYMENT INFORMATION TAB */}
+            {activeTab === 'bankaccount' && (
+              <div className="space-y-6 animate-in slide-in-from-right-4">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-lg font-bold text-slate-800">Bank Account Details</h4>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-md font-black uppercase tracking-wider">Step 5 of 5</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Department Dropdown */}
+                  <FormInput 
+                    label="Bank Account Name"
+                    placeholder="Bank name here..."
+                    reqField={true}
+                    {...register("bankName")} 
+                  />
+
+                  {/* Position Dropdown */}
+                  <FormInput 
+                    label="Bank Account Number"
+                    placeholder="Bank number here..."
+                    reqField={true}
+                    {...register("bankAccountNo")} 
+                  />
+                </div>
 
               </div>
             )}
