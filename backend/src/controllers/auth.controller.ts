@@ -36,11 +36,26 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     if (existingEmployee.email === email) field = "Email";
     if (existingEmployee.employeeId === employeeId) field = "Employee ID";
     
-    sendResponse(res, 400, "", `${field} is already registered.`);
+    return sendResponse(res, 400, "", `${field} is already registered.`);
   }
 
   // 3. Password Hashing
   const hashedPassword = await hashPassword(password);
+
+  // 💡 FIX 1: Resolba sa Timezone Trap ng birthDate
+  // Ibabalik natin sa Philippine Time (+8 hours) ang date bago ito gawing UTC Midnight
+  let cleanBirthDate = null;
+  if (birthDate) {
+    const rawDate = new Date(birthDate);
+    // Idagdag ang 8 oras para ma-offset ang bawas ng UTC sa local time natin
+    const phTimeDate = new Date(rawDate.getTime() + (8 * 60 * 60 * 1000)); 
+    
+    cleanBirthDate = new Date(Date.UTC(
+      phTimeDate.getUTCFullYear(),
+      phTimeDate.getUTCMonth(),
+      phTimeDate.getUTCDate()
+    ));
+  }
 
   // 4. Create Record
   const newEmployee = await prisma.employee.create({
@@ -50,17 +65,28 @@ export const register = catchAsync(async (req: Request, res: Response) => {
       firstName,
       lastName,
       middleName,
-      extensionName,
+      extensionName: extensionName === "" ? undefined : extensionName,
       email,
       password: hashedPassword,
-      birthDate: birthDate ? new Date(birthDate) : null,
-      gender,
-      civilStatus,
+      
+      // ✅ Ginamit na natin ang malinis na UTC Midnight date
+      birthDate: cleanBirthDate, 
+
+      // ✅ FIX 2: Ginawang 'undefined' kapag empty string ("") para tanggapin ni Prisma Enums
+      gender: gender === "" ? undefined : gender,
+      civilStatus: civilStatus === "" ? undefined : civilStatus,
+      
       contactNo,
-      tinNo,
-      sssNo,
-      philhealthNo,
-      pagibigNo,
+      
+      // ✅ BONUS FIX: Ginawang undefined ang empty strings sa mga unique at optional fields.
+      // Kapag kasi "" (empty string) ang nai-save sa dalawang magkaibang tao, mag-eerror si Prisma ng "Unique constraint failed".
+      tinNo: tinNo === "" ? undefined : tinNo,
+      sssNo: sssNo === "" ? undefined : sssNo,
+      philhealthNo: philhealthNo === "" ? undefined : philhealthNo,
+      pagibigNo: pagibigNo === "" ? undefined : pagibigNo,
+      bankAccountNo: bankAccountNo === "" ? undefined : bankAccountNo,
+      bankName: bankName === "" ? undefined : bankName,
+      
       departmentId,
       positionId,
       scheduleId,
@@ -69,8 +95,6 @@ export const register = catchAsync(async (req: Request, res: Response) => {
       basicSalary,
       allowance,
       leaveCredits,
-      bankAccountNo,
-      bankName,
       emergencyContact,
       emergencyName,
       emergencyRelation,

@@ -315,11 +315,10 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                   
                   <FormDatePicker
                     label="Birth Date"
-                    name="birthDate"
-                    control={control}
+                    name="birthDate"    // ✅ Isang beses lang idineklara ang name
+                    control={control}   // ✅ Ipinasa mo si control para siya ang mag-asikaso
                     reqField={true}
                     error={errors.birthDate}
-                    {...register("birthDate", { required: "Birthday is required" })}
                     placeholder="Select birthday"
                     maxDate={new Date()}
                   />
@@ -670,7 +669,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
 
                   <FormInput 
                     label="ZIP Code"
-                    placeholder="zipcode here..."
+                    placeholder="Zip Code here..."
                     reqField={false}
                     // {...register("bankAccountNo")} 
                   />

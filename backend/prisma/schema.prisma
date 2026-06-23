@@ -334,7 +334,6 @@ enum CorrectionType {
 enum Gender {
   MALE
   FEMALE
-  OTHER
 }
 
 enum CivilStatus {
