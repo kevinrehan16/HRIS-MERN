@@ -57,10 +57,10 @@ const Department = () => {
               <thead className="bg-slate-50/80 backdrop-blur-md sticky top-0 z-20 shadow-sm">
                 <tr>
                   <th style={{  width: '25%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Department Details</th>
-                  <th style={{  width: '14%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Description</th>
-                  <th style={{  width: '28%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Positions</th>
-                  <th style={{  width: '12%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">HeadCount</th>
-                  <th style={{  width: '11%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Created At</th>
+                  <th style={{  width: '28%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Description</th>
+                  <th style={{  width: '17%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Positions</th>
+                  <th style={{  width: '10%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">HeadCount</th>
+                  <th style={{  width: '10%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400">Created At</th>
                   <th style={{  width: '10%' }} className="px-6 py-4 text-[11px] font-black uppercase tracking-wider text-slate-400 text-center">Actions</th>
                 </tr>
               </thead>
@@ -88,7 +88,7 @@ const Department = () => {
                   departments.map((department) => (
                     <tr key={department.id} className="hover:bg-slate-50/50 transition-colors group">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                           <div className="h-9 w-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold">
                             <Building2 size={18} />
                           </div>
