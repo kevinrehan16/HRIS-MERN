@@ -270,6 +270,9 @@ model Document {
   employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  // Encryption fields - Kailangan ito para mabuksan ang file
+  iv           String? //Initialization Vector 
+  authTag      String? // Ito ang "seal" ng GCM mode
 
   // Siguraduhin na hindi magdodoble ang parehong uri ng dokumento sa isang empleyado
   @@unique([employeeId, documentType])

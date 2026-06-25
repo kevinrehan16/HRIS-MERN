@@ -1,8 +1,8 @@
 import { X, User, Briefcase, CreditCard, MapPin, Loader2, IdCard, Save, AlertCircle, Info,
-  FileText, UploadCloud, CheckCircle2, Eye, Trash2, ShieldCheck, FolderClosed
+  FileText, UploadCloud, CheckCircle2, DownloadCloud, Trash2, ShieldCheck, FolderClosed
 } from 'lucide-react';
 import { Alert } from 'react-bootstrap';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { ENUMS } from '../../utils/constants';
@@ -18,7 +18,7 @@ import { notificationService } from '../../utils/notifications';
 import { useLookups } from '../../hooks/useLookups';
 import { useEmployees } from '../../hooks/useEmployees';
 import api from '../../api/axiosClient';
-
+import { DOCUMENT_TYPES } from '../../constants/documentTypes';
 interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -79,6 +79,36 @@ interface DocumentRequirement {
 }
 
 const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, createMutation, updateMutation, onSuccessAction, initialData }) => {
+
+  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
+
+  const displayDocuments = useMemo(() => {
+    return DOCUMENT_TYPES.map((type) => {
+      // Hanapin ang uploaded file sa state galing sa API
+      const uploaded = uploadedDocs.find((d: any) => d.documentType === type.key);
+      
+      return {
+        id: uploaded?.id, // Unique ID
+        docType: type.key,
+        name: type.name,
+        description: 'Please upload the required document file', // Default description
+        required: true, // Pwede mong baguhin ang logic nito kung kailangan
+        fileName: uploaded?.fileName || null,
+        fileSize: uploaded?.fileSize || null,
+        status: uploaded ? 'UPLOADED' : 'PENDING'
+      };
+    });
+  }, [uploadedDocs]);
+
+  const fetchDocs = async (employeeId: number) => {
+    try {
+      const res = await api.get(`/documents/${employeeId}`);
+      setUploadedDocs(res.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch documents", error);
+    }
+  };
+  
   const [documents, setDocuments] = useState<DocumentRequirement[]>([
     { 
       id: '1', 
@@ -139,6 +169,9 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
+        
+        fetchDocs(initialData.id);
+        
         reset({
           employeeId: initialData.employeeId,
           role: initialData.role,
@@ -263,6 +296,38 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
     });
   };
 
+  const handleDownload = async (docId, fileName) => {
+    try {
+      const response = await api.get(`/documents/${docId}/download`, {
+        responseType: 'blob', // Important ito!
+      });
+      
+      // I-create ang temporary link para mag-download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName); // I-set ang filename
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert("Failed to download document");
+    }
+  };
+
+  // Function para sa Delete
+  const handleDelete = async (docId) => {
+    if (window.confirm("Are you sure you want to delete this?")) {
+      try {
+        await api.delete(`/documents/${docId}`);
+        alert("Deleted successfully");
+        // Dito mo i-refresh ang document list mo (e.g., call fetchDocuments())
+      } catch (error) {
+        alert("Error deleting document");
+      }
+    }
+  };
+
   const tabs = [
     { id: 'personal', label: 'Personal', icon: <User size={18} /> },
     { id: 'government', label: 'Government IDs', icon: <IdCard size={18} /> },
@@ -300,15 +365,17 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               <div className="my-4 px-4">
                 <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Form Sections</span>
               </div>
-              {tabs.map((tab) => (
+              {tabs
+              .filter((tab) => (tab.id === 'documents' ? !!initialData?.employeeId : true))
+              .map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 !rounded-md font-semibold text-sm transition-all text-left ${
-                    activeTab === tab.id 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' 
-                    : 'text-slate-500 hover:bg-slate-200'
+                    activeTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-100'
+                      : 'text-slate-500 hover:bg-slate-200'
                   }`}
                 >
                   {tab.icon}
@@ -317,14 +384,18 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               ))}
             </div>
             
-            <Alert variant="primary" className='mb-2 mx-2 border-none bg-blue-50/50'>
+            {/* <Alert variant="primary" className='mb-2 mx-2 border-none bg-blue-50/50'>
               <div className='flex gap-2'>
                 <Info className='text-blue-500 shrink-0' size={18}/> 
-                <p className="text-[11px] text-slate-500 leading-relaxed font-medium mb-0">
+                <p className="text-[11px] text-blue-500 leading-relaxed font-normal mb-0">
                   Make sure all required fields marked with <span className='text-red-600 text-md'>*</span> are filled out correctly.
                 </p>
               </div>
-            </Alert>
+            </Alert> */}
+            <div className="flex items-center gap-2 p-3 bg-cyan-100 border border-cyan-100 rounded-lg text-cyan-800 text-[11px] font-medium">
+              <Info size={16} className="text-cyan-600 shrink-0 mb-3" />
+              <span>Make sure all required fields marked with <span className='text-red-600 text-md'>*</span> are filled out correctly.</span>
+            </div>
           </div>
 
           {/* RIGHT SIDE PANEL (CONTENT + ACTION FOOTER) */}
@@ -337,7 +408,12 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               {activeTab === 'personal' && (
                 <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <h4 className="text-lg font-bold text-slate-800 mb-0">Personal Information</h4>
+                      <h4 className="text-lg font-bold text-slate-800 mb-0">
+                        Personal Information
+                        <p className="text-xs text-slate-400 mt-1 font-normal normal-case tracking-normal">
+                          Please ensure all information matches the employee's official government identification.
+                        </p>
+                      </h4>
                       <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 1 of 6</span>
                   </div>
 
@@ -518,7 +594,12 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               {activeTab === 'government' && (
                 <div className="space-y-6 animate-in slide-in-from-right-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <h4 className="text-lg font-bold text-slate-800 mb-0">Government IDs</h4>
+                      <h4 className="text-lg font-bold text-slate-800 mb-0">
+                        Government IDs
+                        <p className="text-xs text-slate-400 mt-1 font-normal normal-case tracking-normal">
+                          Please provide valid government-issued identification numbers for employment processing.
+                        </p>
+                      </h4>
                       <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 2 of 6</span>
                   </div>
                   
@@ -566,7 +647,12 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               {activeTab === 'employment' && (
                 <div className="space-y-6 animate-in slide-in-from-right-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <h4 className="text-lg font-bold text-slate-800 mb-0">Employment Details</h4>
+                      <h4 className="text-lg font-bold text-slate-800 mb-0">
+                        Employment Details
+                        <p className="text-xs text-slate-400 mt-1 font-normal normal-case tracking-normal">
+                          Define the employee's role, department, salary structure, and work schedule. <br/> Ensure all details are accurate for payroll and organizational compliance.
+                        </p>
+                      </h4>
                       <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 3 of 6</span>
                   </div>
                   
@@ -661,7 +747,12 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               {activeTab === 'address' && (
                 <div className="space-y-6 animate-in slide-in-from-right-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <h4 className="text-lg font-bold text-slate-800 mb-0">Address Details</h4>
+                      <h4 className="text-lg font-bold text-slate-800 mb-0">
+                        Address Details
+                        <p className="text-xs text-slate-400 mt-1 font-normal normal-case tracking-normal">
+                          Enter the employee's current residential address.
+                        </p>
+                      </h4>
                       <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 4 of 6</span>
                   </div>
                   
@@ -716,7 +807,12 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
               {activeTab === 'bankaccount' && (
                 <div className="space-y-6 animate-in slide-in-from-right-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <h4 className="text-lg font-bold text-slate-800 mb-0">Bank Account Details</h4>
+                      <h4 className="text-lg font-bold text-slate-800 mb-0">
+                        Bank Account Details
+                        <p className="text-xs text-slate-400 mt-1 font-normal normal-case tracking-normal">
+                          Enter bank details for payroll disbursement. Please ensure accuracy to avoid payment delays.
+                        </p>
+                      </h4>
                       <span className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-black uppercase tracking-wider">Step 5 of 6</span>
                   </div>
                   
@@ -762,74 +858,89 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, cr
                       <thead className="bg-slate-50 border-b border-slate-100">
                         <tr>
                           <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Requirement</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">File Details</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Status</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">File Details</th>
                           <th className="px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-[13px]">
-                        {documents.map((doc) => (
-                          <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-4 py-3.5">
-                              <div className="font-semibold text-slate-700 flex items-center gap-1">
-                                {doc.name}
-                                {doc.required && <span className="text-red-500 font-bold">*</span>}
-                              </div>
-                              <div className="text-[11px] text-slate-400 font-medium mt-0.5">{doc.description}</div>
-                            </td>
-                            <td className="px-4 py-3.5">
-                              {doc.status === 'UPLOADED' ? (
-                                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-100">
-                                  <CheckCircle2 size={12} /> Ready
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-amber-100">
-                                  <AlertCircle size={12} /> Missing
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5 text-slate-500 font-medium">
-                              {doc.fileName ? (
-                                <div>
-                                  <div className="text-slate-700 font-semibold truncate max-w-[200px] flex items-center gap-1">
-                                    <FileText size={14} className="text-slate-400 shrink-0" /> {doc.fileName}
-                                  </div>
-                                  <div className="text-[10px] text-slate-400">{doc.fileSize}</div>
+                        {displayDocuments.map((doc) => (
+                        <tr key={doc.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3.5">
+                            <div className="font-semibold text-slate-700 flex items-center gap-1">
+                              {doc.name}
+                              {doc.required && <span className="text-red-500 font-bold">*</span>}
+                            </div>
+                            <div className="text-[11px] text-slate-400 font-normal italic mt-0.5">{doc.description}</div>
+                          </td>
+                          
+                          <td className="px-4 py-3.5 text-center">
+                            {doc.status === 'UPLOADED' ? (
+                              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-100">
+                                <CheckCircle2 size={12} /> Ready
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-amber-100">
+                                <AlertCircle size={12} /> Missing
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-3.5 text-slate-500 font-medium text-center">
+                            {doc.fileName ? (
+                              <div>
+                                <div className="text-slate-700 font-semibold truncate max-w-[200px] flex items-center gap-1">
+                                  <FileText size={14} className="text-slate-400 shrink-0" /> {doc.fileName}
                                 </div>
-                              ) : (
-                                <span className="text-slate-400 italic font-normal text-xs">No file attached</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                {doc.status === 'UPLOADED' ? (
-                                  <>
-                                    <button type="button" className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all" title="View Document">
-                                      <Eye size={16} />
-                                    </button>
-                                    <button type="button" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all" title="Delete Document">
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </>
-                                ) : (
-                                  <label className="!flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white rounded-md transition-all text-xs font-bold cursor-pointer shadow-sm mb-0">
-                                    <UploadCloud size={14} />
-                                    <span>Upload</span>
-                                    <input 
-                                      type="file" 
-                                      className="hidden" 
-                                      accept=".pdf,.png,.jpg,.jpeg" 
-                                      onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleUpload(file, initialData?.id || 0, doc.docType);
-                                      }} 
-                                    />
-                                  </label>
-                                )}
+                                <div className="text-[10px] text-slate-400">{doc.fileSize}</div>
                               </div>
-                            </td>
-                          </tr>
-                        ))}
+                            ) : (
+                              <span className="text-slate-400 italic font-normal text-xs">No file attached</span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-3.5 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {doc.status === 'UPLOADED' ? (
+                                <>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleDownload(doc.id, doc.fileName)}
+                                    className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all" 
+                                    title="Download Document"
+                                  >
+                                    <DownloadCloud size={16} />
+                                  </button>
+                                  <button 
+                                    type="button" 
+                                    onClick={() => handleDelete(doc.id)}
+                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all" 
+                                    title="Delete Document"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </>
+                              ) : (
+                                <label className="!flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-600 hover:text-white rounded-md transition-all text-xs font-bold cursor-pointer shadow-sm mb-0">
+                                  <UploadCloud size={14} />
+                                  <span>Upload</span>
+                                  <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    accept=".pdf,.png,.jpg,.jpeg" 
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file && initialData?.id) {
+                                        handleUpload(file, initialData.id, doc.docType);
+                                      }
+                                    }} 
+                                  />
+                                </label>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                       </tbody>
                     </table>
                   </div>
