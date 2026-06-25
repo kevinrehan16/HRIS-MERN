@@ -295,8 +295,8 @@ const Attendance = () => {
                             ) : (
                               <div className="flex items-center justify-center gap-1.5 text-slate-400 italic text-[11px] w-full">
                                 <span className="relative flex h-1.5 w-1.5">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-50"></span>
+                                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-600"></span>
                                 </span>
                                 On Duty
                               </div>
