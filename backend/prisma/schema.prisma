@@ -259,13 +259,20 @@ model AttendanceCorrection {
 }
 
 model Document {
-  id         Int      @id @default(autoincrement())
-  name       String // Hal: "NBI Clearance", "Resume"
-  fileUrl    String // Link kung saan naka-save yung file
-  category   String? // Hal: "Legal", "Recruitment"
-  employeeId Int
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
+  id           Int       @id @default(autoincrement())
+  documentType String // Hal: "NBI Clearance", "Resume"
+  fileName     String // Ang orihinal na pangalan ng file (e.g., "my_resume.pdf")
+  filePath     String // Ang path sa backend folder (e.g., "/uploads/docs/doc-171829.pdf")
+  fileSize     String // Para sa UI display (e.g., "1.2 MB")
+  status       DocStatus @default(UPLOADED)
+  category     String? // Hal: "Legal", "Recruitment"
+  employeeId   Int
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Siguraduhin na hindi magdodoble ang parehong uri ng dokumento sa isang empleyado
+  @@unique([employeeId, documentType])
 }
 
 // ENUMS HERE...
@@ -355,4 +362,11 @@ enum PeriodStatus {
   PROCESSING // Kasalukuyang naga-generate (Locked for edits)
   COMPLETED // Tapos na, bawal na baguhin (Posted)
   REVERSED // Na-cancel ang buong batch
+}
+
+enum DocStatus {
+  PENDING
+  UPLOADED
+  VERIFIED
+  REJECTED
 }

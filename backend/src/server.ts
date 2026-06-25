@@ -22,6 +22,7 @@ import positionRoutes from './routes/position.routes.js';
 import holidayRoutes from './routes/holiday.routes.js';
 import attendanceCorrectionRoutes from './routes/attendanceCorrection.routes.js';
 import scheduleRoutes from './routes/schedule.routes.js';
+import documents from './routes/document.routes.js';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use(ROUTES.POSITIONS, positionRoutes);
 app.use(ROUTES.HOLIDAYS, holidayRoutes);
 app.use(ROUTES.ATTENDANCE_CORRECTION, attendanceCorrectionRoutes);
 app.use(ROUTES.SCHEDULE, scheduleRoutes);
+app.use(ROUTES.DOCUMENT, documents);
 
 
 
