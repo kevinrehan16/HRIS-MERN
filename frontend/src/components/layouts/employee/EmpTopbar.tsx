@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Menu, Bell, ChevronDown, AtSign, User, Lock } from 'lucide-react'
+import { Menu, Bell, ChevronDown, AtSign, User, Lock, LogOut } from 'lucide-react'
 
+import { useAuthStore } from '../../../store/authStore'
 import { getInitials } from '../../../utils/formatters';
 
 interface EmpTopbarProps {
@@ -12,6 +13,8 @@ interface EmpTopbarProps {
 }
 
 const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firstName, lastName, email }) => {
+  const { user, logout } = useAuthStore();
+
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -85,6 +88,16 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
                   <div className="p-1">
                     <DropdownItem icon={<User size={16} className='font-bold' />} label="My Profile" />
                     <DropdownItem icon={<Lock size={16} className='font-bold' />} label="Change Password" />
+                    {/* Footer: Logout */}
+                    <div className="pt-0.5 mt-0.5 border-t border-slate-100">
+                      <button 
+                        onClick={logout}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-xs text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all duration-200 border-0 bg-transparent group/logout"
+                      >
+                        <LogOut size={16} className="text-slate-400 group-hover/logout:text-red-500" />
+                        <span className="font-semibold">Sign Out</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

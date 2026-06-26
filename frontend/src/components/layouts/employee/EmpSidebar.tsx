@@ -2,7 +2,6 @@ import React from 'react'
 import { LayoutDashboard, Calendar, MonitorCheck, FileText, Fingerprint, LogOut, Clock, IdCardLanyard } from 'lucide-react'
 
 import { getInitials } from '../../../utils/formatters'
-import { useAuthStore } from '../../../store/authStore'
 import NavItem from '../../common/NavItem'
 
 interface EmpSidebarProps {
@@ -14,7 +13,6 @@ interface EmpSidebarProps {
 }
 
 const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastName, position, employeeId }) => {
-  const { user, logout } = useAuthStore();
 
   return (
     <>
@@ -116,7 +114,7 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
         </nav>
 
         {/* 4. LOGOUT */}
-        <div className="border-t border-slate-100 shrink-0 bg-white overflow-hidden">
+        {/* <div className="border-t border-slate-100 shrink-0 bg-white overflow-hidden">
           <button 
             className={`flex items-center justify-center gap-1 py-1.5 w-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all font-normal text-[12px] border border-transparent hover:border-rose-100 overflow-hidden`}
             onClick={logout}
@@ -124,7 +122,7 @@ const EmpSidebar: React.FC<EmpSidebarProps> = ({ isCollapsed, firstName, lastNam
             <LogOut size={16} className='text-rose-600 font-bold shrink-0' /> 
             {!isCollapsed && <span className="whitespace-nowrap overflow-hidden">Logout</span>}
           </button>
-        </div>
+        </div> */}
       </aside>
     </>
   )

@@ -87,7 +87,7 @@ const NavItem = ({ icon, label, to, isCollapsed, subItems = [] }) => {
                     key={index}
                     to={item.to || "#"}
                     className={`
-                      text-[14px] py-2 px-4 !no-underline transition-all duration-200 block
+                      text-[14px] py-1 px-4 !no-underline transition-all duration-200 block
                       ${isSubActive 
                         ? '!text-purple-600' 
                         : '!text-slate-500 hover:!text-purple-600'
