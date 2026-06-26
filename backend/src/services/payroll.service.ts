@@ -2,35 +2,26 @@ import prisma from '../config/db.js';
 import { calculateSSS, calculatePhilHealth, calculatePagIBIG, calculateWithholdingTax } from '../services/statutory.service.js';
 
 export const generateBatchPayroll = async (payrollPeriodId: number) => {
-  // 1. Hanapin ang Period
   const period = await prisma.payrollPeriod.findUnique({
     where: { id: payrollPeriodId }
   });
 
   if (!period) throw new Error("Payroll Period not found");
+  if (period.status === 'COMPLETED') throw new Error("Payroll finalized.");
+  if (period.status === 'PROCESSING') throw new Error("Generation in progress.");
 
-  if (period.status === 'COMPLETED') {
-    throw new Error("Payroll for this period has already been finalized and locked.");
-  }
-
-  if (period.status === 'PROCESSING') {
-    throw new Error("Payroll generation is currently in progress. Please wait.");
-  }
-
-  // Set status to PROCESSING
   await prisma.payrollPeriod.update({
     where: { id: payrollPeriodId },
     data: { status: 'PROCESSING', progress: 0 }
   });
 
-  const startDate = new Date(period.startDate);
-  startDate.setUTCHours(0, 0, 0, 0);
-  const endDate = new Date(period.endDate);
-  endDate.setUTCHours(23, 59, 59, 999);
+  const startCalendar = new Date(period.startDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+  const endCalendar = new Date(period.endDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
 
+  const startDate = new Date(`${startCalendar}T00:00:00+08:00`);
+  const endDate = new Date(`${endCalendar}T23:59:59.999+08:00`);
   const isEndOfMonth = endDate.getUTCDate() > 15;
 
-  // 2. Kunin ang employees
   const employees = await prisma.employee.findMany({
     include: {
       attendances: { where: { date: { gte: startDate, lte: endDate } } },
@@ -44,30 +35,77 @@ export const generateBatchPayroll = async (payrollPeriodId: number) => {
   for (let i = 0; i < totalEmployees; i++) {
     const emp = employees[i];
 
-    // Math conversions (Safety first)
     const monthlyBasic = Number(emp.basicSalary) || 0;
     const monthlyAllowance = Number(emp.allowance) || 0;
     const dailyRate = monthlyBasic / 22;
     const hourlyRate = dailyRate / 8;
     const semiMonthlyBasic = monthlyBasic / 2;
 
-    let daysPresent = 0, totalLateMins = 0, totalUndertimeMins = 0, totalOTMins = 0;
+    let totalLateMins = 0, totalUndertimeMins = 0, totalOTMins = 0;
+    const attendanceDates = new Set<string>();
+
+    // 1. STRIP AND FILTER ATTENDANCE
     emp.attendances.forEach(att => {
-      daysPresent++;
+      // FIX: Kung ang DB mo ay nagse-save ng attendance kahit absent (e.g. status === 'ABSENT'),
+      // siguraduhin nating hindi natin ito bibilangin na PRESENT.
+      // Pwede mong palitan o alisin ang condition sa ibaba depende sa actual fields ng database mo.
+      if (att.status === 'ABSENT' || att.status === 'LEAVE') {
+        return; 
+      }
+
+      const attDateStr = new Date(att.date).toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+      attendanceDates.add(attDateStr);
+      
       totalLateMins += att.lateMinutes || 0;
       totalUndertimeMins += att.undertimeMinutes || 0;
       totalOTMins += att.overtimeMinutes || 0;
     });
 
-    let paidLeaveDays = 0;
+    // 2. MAP LEAVE DATES
+    const leaveDates = new Set<string>();
     emp.leaves.forEach(l => {
-      const s = l.startDate < startDate ? startDate : l.startDate;
-      const e = l.endDate > endDate ? endDate : l.endDate;
-      const diff = Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-      paidLeaveDays += diff;
+      let curLeave = new Date(l.startDate);
+      const endLeave = new Date(l.endDate);
+      while (curLeave <= endLeave) {
+        const leaveDateStr = curLeave.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+        leaveDates.add(leaveDateStr);
+        curLeave.setDate(curLeave.getDate() + 1);
+      }
     });
 
-    const absentDeduction = Math.max(0, 11 - (daysPresent + paidLeaveDays)) * dailyRate;
+    // ============================================================
+    // PURE UTC NOON LOOP (Dito tayo 100% Ligtas sa Server Timezone)
+    // ============================================================
+    let absentDays = 0;
+    let daysPresent = 0;
+    
+    let currentLoop = new Date(`${startCalendar}T12:00:00Z`);
+    const endLoop = new Date(`${endCalendar}T12:00:00Z`);
+
+    while (currentLoop <= endLoop) {
+      const dateStr = currentLoop.toISOString().split('T')[0]; // Siguradong YYYY-MM-DD
+      const dayOfWeek = currentLoop.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      if (!isWeekend) {
+        if (attendanceDates.has(dateStr)) {
+          daysPresent++;
+        } else if (leaveDates.has(dateStr)) {
+          // May approved leave, excused.
+        } else {
+          // Lunes hanggang Biyernes na walang Attendance log at walang Leave = ABSENT
+          absentDays++;
+        }
+      }
+      currentLoop.setUTCDate(currentLoop.getUTCDate() + 1);
+    }
+
+    // TERMINAL DEBUGGER LOG: 
+    // Makikita mo ito sa iyong backend console habang tumatakbo ang generator.
+    console.log(`[PAYROLL DEBUG] Emp ID: ${emp.id} | Present: ${daysPresent} | Absents Calculated: ${absentDays} | Logs Found: ${attendanceDates.size}`);
+
+    // Math Calculations
+    const absentDeduction = absentDays * dailyRate;
     const lateDeduction = (hourlyRate / 60) * totalLateMins;
     const undertimeDeduction = (hourlyRate / 60) * totalUndertimeMins;
     const totalAttendanceDeductions = absentDeduction + lateDeduction + undertimeDeduction;
@@ -78,21 +116,13 @@ export const generateBatchPayroll = async (payrollPeriodId: number) => {
     const pagibig = isEndOfMonth ? calculatePagIBIG(monthlyBasic) : 0;
     const totalGov = sss + philhealth + pagibig;
 
-    // ============================================================
-    // FIXED WITHHOLDING TAX LOGIC
-    // ============================================================
     let withholdingTax = 0;
     if (isEndOfMonth) {
       const monthlyGross = monthlyBasic + totalOTPay + monthlyAllowance;
       const totalDeductions = totalGov + totalAttendanceDeductions;
-      
-      // Math.max(0, ...) ensures no negative income enters the tax function
       const actualTaxableIncomeMonthly = Math.max(0, monthlyGross - totalDeductions);
-      
       const fullMonthlyTax = calculateWithholdingTax(actualTaxableIncomeMonthly);
       withholdingTax = fullMonthlyTax / 2;
-
-      console.log(`[TAX OK] ${emp.firstName}: Gross ${monthlyGross.toFixed(2)}, Taxable ${actualTaxableIncomeMonthly.toFixed(2)}, Tax ${withholdingTax.toFixed(2)}`);
     }
 
     const currentAllowance = (isEndOfMonth && absentDeduction === 0) ? monthlyAllowance : 0;
@@ -117,7 +147,7 @@ export const generateBatchPayroll = async (payrollPeriodId: number) => {
       withholdingTax: Number(withholdingTax.toFixed(2)),
       netPay: Number(netPay.toFixed(2)),
       status: 'PENDING',
-      remarks: `Batch: ${period.periodName}`
+      remarks: `Batch Check: ${period.periodName}`
     });
 
     const currentProgress = Math.round(((i + 1) / totalEmployees) * 100);
@@ -127,9 +157,7 @@ export const generateBatchPayroll = async (payrollPeriodId: number) => {
     });
   }
 
-  // 3. Save to Database & Finalize Status
   await prisma.$transaction([
-    // Delete ANY existing payroll for this period to prevent duplicates or sticking values
     prisma.payroll.deleteMany({ where: { payrollPeriodId: period.id } }),
     prisma.payroll.createMany({ data: payrolls }),
     prisma.payrollPeriod.update({
