@@ -3,7 +3,7 @@ import { Menu, Bell, ChevronDown, AtSign, User, Lock, LogOut } from 'lucide-reac
 
 import { useAuthStore } from '../../../store/authStore'
 
-import { useEmpNotificationQuery } from '../../../hooks/employee/useEmpNotification';
+import { useEmpNotificationQuery, useMarkAsReadMutation } from '../../../hooks/employee/useEmpNotification';
 
 import { getInitials, timeAgo } from '../../../utils/formatters';
 
@@ -62,7 +62,19 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
   // ];
 
   const { data: notifications, isLoading, isError } = useEmpNotificationQuery();
-  console.log(notifications);
+  const { mutate: markAsRead } = useMarkAsReadMutation();
+
+  const handleMarkAsRead = (id) => {
+    markAsRead(id, {
+      onSuccess: () => {
+        console.log("Success!");
+  // Siguraduhin na 'notifications' ang queryKey mo
+      },
+      onError: (error) => {
+        console.error("Error marking as read:", error);
+      }
+    });
+  };
 
   const [filter, setFilter] = useState('all');
   const filteredNotifications = filter === 'all' 
@@ -140,27 +152,27 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
                           </div>
 
                           {/* unread dot */}
-                          {notif.isRead > 0 && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border border-white"></span>}
+                          {notif.isRead == 0 && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border border-white"></span>}
                           
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
 
-                          <p className="text-md font-semibold text-slate-800 truncate m-0">
+                          <p className="text-sm font-semibold text-slate-800 truncate m-0">
                             {notif.title}
                           </p>
 
-                          <p className="text-sm text-slate-500 mt-0.5 mb-1 m-0">
+                          <p className="text-xs text-slate-500 mt-0.5 mb-1 m-0">
                             {notif.message}
                           </p>
                           
                           <div className="mt-2 flex items-center justify-between gap-1">
-                            <span className="text-[12px] text-slate-400 whitespace-nowrap">
+                            <span className="text-[11px] text-slate-400 whitespace-nowrap">
                               {timeAgo(notif.createdAt)}
                             </span>
                             
-                            {notif.isRead > 0 && <span className="text-[12px] text-purple-500 font-medium opacity-0 group-hover:!opacity-100 transition-all">
+                            {notif.isRead == 0 && <span className="text-[10px] p-2 rounded-full font-semibold text-purple-500 opacity-0 group-hover:!opacity-100 hover:bg-purple-500 hover:text-white transition-all" onClick={() => handleMarkAsRead(notif.id)}>
                               Mark as read
                             </span>}
                             

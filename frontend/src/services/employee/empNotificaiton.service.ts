@@ -9,14 +9,8 @@ export const EmpNotificationService = {
     return response.data;
   },
 
-//   applyLeave: async (startDate: string, endDate: string, type: string, reason: string, isHalfDay: boolean) => {
-//     const response = await api.post('/leave-request/apply', {
-//       startDate,
-//       endDate,
-//       type,
-//       reason,
-//       isHalfDay
-//     });
-//     return response.data;
-//   }
+  markAsRead: async (id: number) => {
+    const response = await api.patch('/notifications/'+id+"/read");
+    return response.data;
+  }
 };

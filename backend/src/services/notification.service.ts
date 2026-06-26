@@ -1,5 +1,7 @@
 // services/notificationService.ts
 import prisma from '../config/db.js';
+import { AppError } from '@/utils/AppError.js';
+import { catchAsync } from '@/utils/catchAsync.js';
 
 export const sendNotification = async (
   employeeId: number, 
@@ -30,7 +32,22 @@ export const getNotification = async (employeeId: number, unreadOnly: boolean = 
     return notifications;
 }
 
-export const markAsRead = async (employeeId: number) => {
+export const markAsRead = async (id: number, employeeId: number) => {
+  
+  const notification = await prisma.notification.update({
+    where: { 
+        id: id,
+        employeeId: employeeId
+    },
+    data: { 
+        isRead: true 
+    }
+  });
+
+  return notification;
+};
+
+export const markAsAllRead = async (employeeId: number) => {
   return await prisma.notification.updateMany({
     where: { employeeId, isRead: false },
     data: { isRead: true }

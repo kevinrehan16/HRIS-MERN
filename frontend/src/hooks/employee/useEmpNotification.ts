@@ -13,13 +13,15 @@ export const useEmpNotificationQuery = (search: string = "") => {
   });
 }
 
-// export const useApplyLeaveMutation = () => {
-//   const queryClient = useQueryClient();
-//   return useMutation({
-//     mutationFn: ({ startDate, endDate, type, reason, isHalfDay }: { startDate: string; endDate: string; type: string; reason: string; isHalfDay: boolean }) =>
-//       EmpLeaveService.applyLeave(startDate, endDate, type, reason, isHalfDay),
-//     onSuccess: () => {
-//       queryClient.invalidateQueries({ queryKey: ['empLeaves'] });
-//     }
-//   });
-// };
+export const useMarkAsReadMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id ) => EmpNotificationService.markAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-notification'] });
+    },
+    onError: (error) => {
+      console.error("Error marking as read:", error);
+    }
+  });
+};
