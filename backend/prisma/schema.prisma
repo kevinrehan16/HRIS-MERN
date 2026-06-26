@@ -79,8 +79,23 @@ model Employee {
   manager      Employee?  @relation("ManagerEmployees", fields: [managerId], references: [id])
   subordinates Employee[] @relation("ManagerEmployees")
 
+  // --- Notification for approvals ----
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  title      String
+  message    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  // Relasyon pabalik sa Employee
+  employee Employee @relation(fields: [employeeId], references: [id])
 }
 
 model Department {

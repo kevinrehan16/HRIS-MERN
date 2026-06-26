@@ -1,10 +1,11 @@
 import type { Request, Response } from 'express';
-import { differenceInMinutes, parse } from 'date-fns';
+// import { differenceInMinutes, parse } from 'date-fns';
 
 import prisma from '../config/db.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
-import { AppError } from '../utils/appError.js';
+import { AppError } from '../utils/AppError.js';
+import { sendNotification } from '../services/notification.service.js';
 
 export const getCorrectionRequests = catchAsync(async (req, res) => {
   const { status = 'PENDING' } = req.query;
@@ -164,8 +165,14 @@ export const approveCorrection = catchAsync(async (req, res, next) => {
         status: 'APPROVED', 
         adminRemarks: adminRemarks || 'Approved and metrics recomputed' 
       },
-    }),
+    }),  
   ]);
+  
+  sendNotification(
+    correction.employeeId,
+    'Correction Approved',
+    `Your request for Attendance Correction has been approved.`
+  ).catch(console.error)
 
   sendResponse(res, 200, null, 'Attendance and Overtime recomputed and approved!');
 });
