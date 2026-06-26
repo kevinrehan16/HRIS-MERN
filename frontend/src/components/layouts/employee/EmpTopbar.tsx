@@ -37,30 +37,6 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // const notifications = [
-  //   {
-  //     id: 1,
-  //     title: "Attendance Approved",
-  //     message: "Your correction request has been approved.",
-  //     time: "2 mins ago",
-  //     isRead: 1,
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "New Schedule",
-  //     message: "Your schedule has been updated.",
-  //     time: "1 hr ago",
-  //     isRead: 0,
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Payroll Released",
-  //     message: "Your salary is now available.",
-  //     time: "Yesterday",
-  //     isRead: 1,
-  //   },
-  // ];
-
   const { data: notifications, isLoading, isError } = useEmpNotificationQuery();
   const { mutate: markAsRead } = useMarkAsReadMutation();
 
@@ -77,9 +53,10 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
   };
 
   const [filter, setFilter] = useState('all');
-  const filteredNotifications = filter === 'all' 
-  ? notifications 
-  : notifications.filter((notif) => !notif.isRead);
+  const filteredNotifications = notifications?.filter((notif) => {
+    if (filter === 'unread') return !notif.isRead;
+    return true; // Kung 'all', ipakita lahat
+  }) ?? [];
 
   return (
     <>
@@ -139,7 +116,7 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
                   {/* Body */}
                   <div className="max-h-72 overflow-y-auto">
 
-                    {notifications.map((notif, index) => (
+                    {filteredNotifications.map((notif, index) => (
                       <div
                         key={notif.id}
                         className="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
