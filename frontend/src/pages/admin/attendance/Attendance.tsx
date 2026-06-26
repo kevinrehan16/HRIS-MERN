@@ -244,7 +244,7 @@ const Attendance = () => {
                                   <div className="text-[11px] font-bold text-slate-700">
                                     {record.timeIn ? formatDisplayTime(record.timeIn) : "---"}
                                   </div>
-                                  <span className={`text-[9px] font-bold px-1 rounded ${record.lateMinutes > 0 ? 'bg-amber-50 text-amber-600' : 'text-slate-400'}`}>
+                                  <span className={`text-[9px] font-bold rounded ${record.lateMinutes > 0 ? 'bg-amber-50 text-amber-600' : 'text-slate-400'}`}>
                                     {record.lateMinutes > 0 ? `${record.lateMinutes}m Late` : 'Regular'}
                                   </span>
                                 </div>
