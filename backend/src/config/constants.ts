@@ -15,4 +15,5 @@ export const ROUTES = {
   ATTENDANCE_CORRECTION: `${API_PREFIX}/attendance-correction`,
   SCHEDULE: `${API_PREFIX}/schedules`,
   DOCUMENT: `${API_PREFIX}/documents`,
+  NOTIFICATION: `${API_PREFIX}/notifications`,
 };

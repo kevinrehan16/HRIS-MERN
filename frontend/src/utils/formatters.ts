@@ -1,3 +1,5 @@
+import { formatDistanceToNow } from 'date-fns';
+
 /**
  * Kunin ang initials ng employee (e.g., Kevin Macandog -> KM)
  */
@@ -170,4 +172,8 @@ export const calculateAge = (birthDate: Date | string | null) => {
     age--;
   }
   return age;
+};
+
+export const timeAgo = (dateInput: string | Date) => {
+  return formatDistanceToNow(new Date(dateInput), { addSuffix: true });
 };

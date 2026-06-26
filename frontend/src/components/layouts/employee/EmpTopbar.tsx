@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Menu, Bell, ChevronDown, AtSign, User, Lock, LogOut } from 'lucide-react'
 
 import { useAuthStore } from '../../../store/authStore'
-import { getInitials } from '../../../utils/formatters';
+
+import { useEmpNotificationQuery } from '../../../hooks/employee/useEmpNotification';
+
+import { getInitials, timeAgo } from '../../../utils/formatters';
 
 interface EmpTopbarProps {
   isCollapsed: boolean,
@@ -14,19 +17,57 @@ interface EmpTopbarProps {
 
 const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firstName, lastName, email }) => {
   const { user, logout } = useAuthStore();
+  const [openNotif, setOpenNotif] = useState(false);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const dropdownNotif = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
+
+      if (dropdownNotif.current && !dropdownNotif.current.contains(event.target)) {
+        setOpenNotif(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // const notifications = [
+  //   {
+  //     id: 1,
+  //     title: "Attendance Approved",
+  //     message: "Your correction request has been approved.",
+  //     time: "2 mins ago",
+  //     isRead: 1,
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "New Schedule",
+  //     message: "Your schedule has been updated.",
+  //     time: "1 hr ago",
+  //     isRead: 0,
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Payroll Released",
+  //     message: "Your salary is now available.",
+  //     time: "Yesterday",
+  //     isRead: 1,
+  //   },
+  // ];
+
+  const { data: notifications, isLoading, isError } = useEmpNotificationQuery();
+  console.log(notifications);
+
+  const [filter, setFilter] = useState('all');
+  const filteredNotifications = filter === 'all' 
+  ? notifications 
+  : notifications.filter((notif) => !notif.isRead);
 
   return (
     <>
@@ -41,10 +82,105 @@ const EmpTopbar: React.FC<EmpTopbarProps> = ({ isCollapsed, setIsCollapsed, firs
           </div>
 
           <div className="flex items-center gap-3 pr-2">
-            <button className="p-1.5 text-slate-400 hover:text-purple-400 hover:bg-slate-50 rounded-lg transition-all relative">
-              <Bell size={16} strokeWidth={2.5} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>
-            </button>
+            <div className="relative inline-block" ref={dropdownNotif}>
+              <button 
+                onClick={() => setOpenNotif(!openNotif)}
+                className="p-1.5 pb-2.5 text-slate-400 hover:text-purple-400 hover:bg-slate-50 rounded-lg transition-all relative"
+              >
+                <Bell size={16} strokeWidth={2.5} />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>
+              </button>
+              {/* Popup */}
+              {openNotif && (
+                <div className="absolute right-0 mt-2.5 w-80 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-xl shadow-xl z-50 animate-in fade-in zoom-in duration-150 origin-top-right overflow-hidden">
+                  {/* Header (same style as profile dropdown) */}
+                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <p className="text-lg mb-2 font-bold text-slate-800">
+                        Notifications
+                      </p>
+                      <div className="py-2 flex items-center gap-1">
+                        <button
+                          onClick={() => setFilter('all')}
+                          className={`px-3 py-1 !rounded-full text-sm font-normal transition-all ${
+                            filter === 'all' 
+                              ? 'bg-purple-700 text-white' 
+                              : 'text-slate-400 hover:text-slate-600'
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          onClick={() => setFilter('unread')}
+                          className={`px-3 py-1 !rounded-full text-sm font-normal transition-all ${
+                            filter === 'unread' 
+                              ? 'bg-purple-700 text-white' 
+                              : 'text-slate-400 hover:text-slate-600'
+                          }`}
+                        >
+                          Unread
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  <div className="max-h-72 overflow-y-auto">
+
+                    {notifications.map((notif, index) => (
+                      <div
+                        key={notif.id}
+                        className="flex gap-3 px-4 py-3 hover:bg-slate-50 transition-all duration-200 cursor-pointer group"
+                      >
+
+                        {/* Icon / Dot */}
+                        <div className="relative mt-1">
+                          <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
+                            <Bell size={14} className="text-purple-500" />
+                          </div>
+
+                          {/* unread dot */}
+                          {notif.isRead > 0 && <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-rose-500 rounded-full border border-white"></span>}
+                          
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+
+                          <p className="text-md font-semibold text-slate-800 truncate m-0">
+                            {notif.title}
+                          </p>
+
+                          <p className="text-sm text-slate-500 mt-0.5 mb-1 m-0">
+                            {notif.message}
+                          </p>
+                          
+                          <div className="mt-2 flex items-center justify-between gap-1">
+                            <span className="text-[12px] text-slate-400 whitespace-nowrap">
+                              {timeAgo(notif.createdAt)}
+                            </span>
+                            
+                            {notif.isRead > 0 && <span className="text-[12px] text-purple-500 font-medium opacity-0 group-hover:!opacity-100 transition-all">
+                              Mark as read
+                            </span>}
+                            
+                          </div>
+
+                          
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-3 py-2 border-t border-slate-100 bg-slate-50/40 flex justify-center">
+                    <button className="text-sm !rounded-md w-full p-1.5 font-semibold bg-slate-400 text-white hover:!text-white hover:!bg-purple-600 transition-all">
+                      View all notifications
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="h-4 w-[1px] bg-slate-200"></div>
 
