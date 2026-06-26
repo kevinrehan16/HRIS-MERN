@@ -70,7 +70,6 @@ export const createCorrectionRequest = catchAsync(async (req, res) => {
   sendResponse(res, 201, newRequest, "Created successfully");
 });
 
-// FIXME: FIX THE COMPUTATION OF LATE AND UNDERTIME, ONCE THE CORRECTION IS APPROVED.
 export const approveCorrection = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const { adminRemarks } = req.body;
