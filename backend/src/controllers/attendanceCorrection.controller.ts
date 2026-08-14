@@ -155,8 +155,8 @@ export const approveCorrection = catchAsync(async (req, res, next) => {
         undertimeMinutes: undertimeMinutes,
         overtimeMinutes: overtimeMinutes, // <--- Heto na siya!
         isUndertime: undertimeMinutes > 0,
-        status: status,
-        otStatus: otStatus, 
+        status: status as any,
+        otStatus: otStatus as any, 
       },
     }),
     prisma.attendanceCorrection.update({

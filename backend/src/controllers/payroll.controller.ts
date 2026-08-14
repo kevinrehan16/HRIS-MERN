@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { PayrollStatus } from '@prisma/client'; // Import Enum
+import type { AuthRequest } from '../middlewares/auth.middleware.js';
 import prisma from '../config/db.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';

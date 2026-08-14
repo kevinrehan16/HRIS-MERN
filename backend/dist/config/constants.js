@@ -1,0 +1,20 @@
+// src/config/constants.ts
+export const API_PREFIX = '/api/v1';
+export const ROUTES = {
+    AUTH: `${API_PREFIX}/auth`,
+    EMPLOYEES: `${API_PREFIX}/employees`,
+    DEPARTMENTS: `${API_PREFIX}/departments`,
+    ATTENDANCE: `${API_PREFIX}/attendance`,
+    LEAVE: `${API_PREFIX}/leave`,
+    LEAVE_REQUEST: `${API_PREFIX}/leave-request`,
+    PAYROLL: `${API_PREFIX}/payroll`,
+    PAYROLL_PERIODS: `${API_PREFIX}/payroll-periods`,
+    POSITIONS: `${API_PREFIX}/positions`,
+    HOLIDAYS: `${API_PREFIX}/holidays`,
+    ATTENDANCE_CORRECTION: `${API_PREFIX}/attendance-correction`,
+    SCHEDULE: `${API_PREFIX}/schedules`,
+    DOCUMENT: `${API_PREFIX}/documents`,
+    NOTIFICATION: `${API_PREFIX}/notifications`,
+    DASHBOARD: `${API_PREFIX}/dashboard`,
+};
+//# sourceMappingURL=constants.js.map

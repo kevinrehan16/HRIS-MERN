@@ -5,6 +5,10 @@ export const findEmployeeByEmail = async (email: string): Promise<Employee | nul
   return await prisma.employee.findUnique({ where: { email } });
 };
 
+export const findEmployeeById = async (id: number): Promise<Employee | null> => {
+  return prisma.employee.findUnique({ where: { id } });
+};
+
 export const createEmployee = async (data: Prisma.EmployeeCreateInput): Promise<Employee> => {
   return await prisma.employee.create({ data });
 };

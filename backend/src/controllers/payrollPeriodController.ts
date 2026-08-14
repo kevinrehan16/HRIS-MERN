@@ -1,3 +1,4 @@
+import type { Request, Response } from 'express';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { getPeriodById, createPeriod, getAllPeriods } from '../services/payrollPeriod.service.js';

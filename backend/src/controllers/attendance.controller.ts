@@ -275,13 +275,8 @@ export const adjustAttendance = catchAsync(async (req: Request, res: Response) =
     if (tOut < targetEnd) {
       undertimeMins = Math.floor((targetEnd.getTime() - tOut.getTime()) / 60000);
     } else if (tOut > targetEnd) {
-      const approvedOT = await prisma.overtimeRequest.findFirst({
-        where: { employeeId: attendance.employeeId, date: attendance.date, status: 'APPROVED' }
-      });
-      if (approvedOT) {
-        overtimeMins = Math.floor((tOut.getTime() - targetEnd.getTime()) / 60000);
-        otStatus = 'APPROVED';
-      }
+      overtimeMins = Math.floor((tOut.getTime() - targetEnd.getTime()) / 60000);
+      otStatus = 'PENDING';
     }
   }
 
@@ -355,7 +350,7 @@ export const getPendingOvertime = catchAsync(async (req: Request, res: Response)
   });
 });
 
-export const getMyAttendance = catchAsync(async (req: Request, res: Response) => {
+export const getMyAttendance = catchAsync(async (req: any, res: Response) => {
   const myAttendance = await prisma.attendance.findMany({
     where: {
       employeeId: req.user.id,
@@ -420,7 +415,7 @@ export const getMyAttendance = catchAsync(async (req: Request, res: Response) =>
   sendResponse(res, 200, formattedAttendance, "Fetch my attendance logs.");
 });
 
-export const requestOvertime = catchAsync(async (req: Request, res: Response) => {
+export const requestOvertime = catchAsync(async (req: any, res: Response) => {
   const { id } = req.params; // Kunin ang ID mula sa URL
   const { otRemarks } = req.body;
 

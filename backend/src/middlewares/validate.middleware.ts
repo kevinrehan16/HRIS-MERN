@@ -1,10 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as z from 'zod';
 
-export const validate = (schema: z.AnyZodObject) => 
+export const validate = (schema: z.ZodType) => 
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await schema.safeParseAsync({
+      const result: any = await schema.safeParseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
@@ -18,7 +18,7 @@ export const validate = (schema: z.AnyZodObject) =>
           success: false,
           // Gagamit tayo ng flat() method ni Zod para mas safe kumuha ng message
           message: result.error.flatten().fieldErrors.body?.[0] || 
-                   result.error.errors[0]?.message || 
+                   result.error.issues[0]?.message || 
                    "Validation Error",
         });
       }

@@ -81,6 +81,7 @@ model Employee {
 
   // --- Notification for approvals ----
   notifications Notification[]
+  auditLogs     AuditLog[]     @relation("AuditActor")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -96,6 +97,23 @@ model Notification {
 
   // Relasyon pabalik sa Employee
   employee Employee @relation(fields: [employeeId], references: [id])
+}
+
+/// Immutable business-event history for HR, payroll, and compliance review.
+/// Sensitive field values must never be written to `metadata`.
+model AuditLog {
+  id        Int       @id @default(autoincrement())
+  actorId   Int?
+  actor     Employee? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String    @db.VarChar(100)
+  entity    String    @db.VarChar(50) // <--- Pinaliit para ligtas sa index limit
+  entityId  String?   @db.VarChar(50) // <--- Pinaliit din
+  metadata  String?   @db.Text
+  createdAt DateTime  @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId])
+  @@index([createdAt])
 }
 
 model Department {

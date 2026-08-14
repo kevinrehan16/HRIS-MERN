@@ -5,7 +5,7 @@ import { prisma } from '../config/db.js';
 import { hashPassword } from '../utils/password.util.js';
 import { sendResponse } from '../utils/sendResponse.js';
 import { catchAsync } from '../utils/catchAsync.js';
-import { AppError } from '../utils/appError.js';
+import { AppError } from '../utils/AppError.js';
 
 // 1. REGISTER (Clean with Repository)
 // export const registerEmployee = catchAsync(async (req: Request, res: Response) => {
@@ -68,6 +68,9 @@ export const updateEmployeeProfile = catchAsync(async (req: Request, res: Respon
     updatePayload.password = await hashPassword(password);
   }
 
+  const existingEmployee = await EmployeeRepo.findEmployeeById(employeeIdInt);
+  if (!existingEmployee) throw new AppError('Employee not found.', 404);
+
   // 4. Execute Update via Repo
   const updatedEmployee = await EmployeeRepo.updateEmployee(employeeIdInt, updatePayload);
 
@@ -81,7 +84,10 @@ export const updateEmployeeProfile = catchAsync(async (req: Request, res: Respon
 export const deleteEmployee = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    await EmployeeRepo.deleteEmployee(Number(id));
+    const employeeId = Number(id);
+    const existingEmployee = await EmployeeRepo.findEmployeeById(employeeId);
+    if (!existingEmployee) throw new AppError('Employee not found.', 404);
+    await EmployeeRepo.deleteEmployee(employeeId);
 
     sendResponse(res, 200, null, "Employee Deleted Successfully!");
 });
@@ -92,6 +98,9 @@ export const enrollFace = catchAsync(async (req: any, res: Response) => {
   const { faceDescriptor } = req.body;
 
   if (!faceDescriptor) throw new AppError("Face data is required", 400);
+
+  const existingEmployee = await EmployeeRepo.findEmployeeById(Number(id));
+  if (!existingEmployee) throw new AppError('Employee not found.', 404);
 
   const updatedEmployee = await prisma.employee.update({
     where: { id: Number(id) },

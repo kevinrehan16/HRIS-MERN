@@ -1,86 +1,49 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import prisma from '../config/db.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
-import { AppError } from '../utils/AppError.js';
 
-export const getLeaveSummary = catchAsync(async (req, res) => {
-  // 1. Fetch employees gamit ang tamang relation name (leaves)
+/** Company leave-balance report. `leaveCredits` is the available balance; allocated is derived for a truthful report. */
+export const getLeaveSummary = catchAsync(async (_req, res: Response) => {
   const employees = await prisma.employee.findMany({
+    where: { status: { not: 'TERMINATED' } },
     select: {
       id: true,
       employeeId: true,
       firstName: true,
       lastName: true,
-      leaveCredits: true, // Ito yung default(15) mo
-      
+      leaveCredits: true,
       leaves: {
-        where: {
-          status: { in: ['APPROVED', 'PENDING'] }
-        },
-        select: {
-          startDate: true,
-          endDate: true,
-          type: true,
-          status: true,
-        },
+        where: { status: { in: ['APPROVED', 'PENDING'] } },
+        select: { totalDays: true, type: true, status: true, startDate: true },
       },
     },
+    orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
   });
 
-  // 2. Map at Calculate
-  const leaveSummary = employees.map((emp) => {
-    let usedVL = 0;
-    let usedSL = 0;
-    let pendingCount = 0;
-
-    emp.leaves.forEach((leave) => {
-      // Gagamitin natin yung business days logic (no Sat/Sun)
-      const days = calculateBusinessDays(new Date(leave.startDate), new Date(leave.endDate));
-
-      if (leave.status === 'PENDING') {
-        pendingCount++;
-      }
-
-      if (leave.status === 'APPROVED') {
-        const days = calculateBusinessDays(new Date(leave.startDate), new Date(leave.endDate));
-        if (leave.type === 'VACATION') usedVL += days;
-        if (leave.type === 'SICK') usedSL += days;
-      }
-      
-    });
-
-    const totalUsed = usedVL + usedSL;
-    const totalAllocated = emp.leaveCredits; // 15 base sa schema mo
+  const summary = employees.map((employee) => {
+    const approved = employee.leaves.filter((leave) => leave.status === 'APPROVED');
+    const pending = employee.leaves.filter((leave) => leave.status === 'PENDING');
+    const usedVL = approved.filter((leave) => leave.type === 'VACATION').reduce((sum, leave) => sum + Number(leave.totalDays), 0);
+    const usedSL = approved.filter((leave) => leave.type === 'SICK').reduce((sum, leave) => sum + Number(leave.totalDays), 0);
+    const usedTotal = approved.reduce((sum, leave) => sum + Number(leave.totalDays), 0);
+    const pendingDays = pending.reduce((sum, leave) => sum + Number(leave.totalDays), 0);
+    const available = Number(employee.leaveCredits);
 
     return {
-      id: emp.id,
-      employeeId: emp.employeeId,
-      firstName: emp.firstName,
-      lastName: emp.lastName,
-      totalVL: totalAllocated, // Kung shared ang credits, 15 ang basehan ng dalawa
-      totalSL: totalAllocated,
+      id: employee.id,
+      employeeId: employee.employeeId,
+      firstName: employee.firstName,
+      lastName: employee.lastName,
+      allocated: available + usedTotal,
       usedVL,
       usedSL,
-      usedTotal: totalUsed,
-      pendingCount,
-      remainingTotal: totalAllocated - totalUsed, // Ang tunay na natitirang credits
-      lastLeaveDate: emp.leaves.length > 0 
-        ? emp.leaves.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())[0].startDate 
-        : null
+      usedTotal,
+      pendingDays,
+      available,
+      lastLeaveDate: approved.sort((a, b) => b.startDate.getTime() - a.startDate.getTime())[0]?.startDate ?? null,
     };
   });
 
-  sendResponse(res, 200, leaveSummary, "Leave history retrieved.");
+  sendResponse(res, 200, summary, 'Leave balance report retrieved.');
 });
-
-// Helper function (Business Days)
-function calculateBusinessDays(start: Date, end: Date): number {
-  let count = 0;
-  let cur = new Date(start);
-  while (cur <= end) {
-    if (cur.getDay() !== 0 && cur.getDay() !== 6) count++;
-    cur.setDate(cur.getDate() + 1);
-  }
-  return count;
-}

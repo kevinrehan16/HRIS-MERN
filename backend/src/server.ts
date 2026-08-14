@@ -24,6 +24,7 @@ import attendanceCorrectionRoutes from './routes/attendanceCorrection.routes.js'
 import scheduleRoutes from './routes/schedule.routes.js';
 import documents from './routes/document.routes.js';
 import notifications from './routes/notification.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ app.use(ROUTES.ATTENDANCE_CORRECTION, attendanceCorrectionRoutes);
 app.use(ROUTES.SCHEDULE, scheduleRoutes);
 app.use(ROUTES.DOCUMENT, documents);
 app.use(ROUTES.NOTIFICATION, notifications);
+app.use(ROUTES.DASHBOARD, dashboardRoutes);
 
 
 // Global Error Handler - Dapat itong laging nasa HULI ng lahat ng routes/middleware

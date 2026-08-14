@@ -16,4 +16,5 @@ export const ROUTES = {
   SCHEDULE: `${API_PREFIX}/schedules`,
   DOCUMENT: `${API_PREFIX}/documents`,
   NOTIFICATION: `${API_PREFIX}/notifications`,
+  DASHBOARD: `${API_PREFIX}/dashboard`,
 };

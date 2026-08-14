@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 });
 
 // Filter para siguraduhing PDF o Images lang ang tinatanggap (Enterprise Security)
-const fileFilter = (req: any, file: Express.Ray, cb: any) => {
+const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
   const allowedTypes = ['.pdf', '.png', '.jpg', '.jpeg'];
   const ext = path.extname(file.originalname).toLowerCase();
   

@@ -31,7 +31,7 @@ const deleteFile = (filePath?: string) => {
   }
 };
 
-export const deleteDocument = async (req: Request, res: Response) => {
+export const deleteDocument = async (req: any, res: Response) => {
   try {
     const { docId } = req.params;
     
@@ -58,7 +58,7 @@ export const deleteDocument = async (req: Request, res: Response) => {
   }
 };
 
-export const uploadEmployeeDocument = async (req: Request, res: Response) => {
+export const uploadEmployeeDocument = async (req: any, res: Response) => {
   const { employeeId, docType } = req.params;
   const file = req.file;
 
@@ -123,7 +123,7 @@ export const uploadEmployeeDocument = async (req: Request, res: Response) => {
   }
 };
 
-export const getEmployeeDocuments = async (req: Request, res: Response) => {
+export const getEmployeeDocuments = async (req: any, res: Response) => {
   try {
     const documents = await prisma.document.findMany({ 
       where: { employeeId: Number(req.params.employeeId) },
@@ -142,7 +142,7 @@ export const getEmployeeDocuments = async (req: Request, res: Response) => {
   }
 };
 
-export const downloadDocument = async (req: Request, res: Response) => {
+export const downloadDocument = async (req: any, res: Response) => {
   console.log("DEBUG - req.params:", req.params);
   try {
     const { docId } = req.params;

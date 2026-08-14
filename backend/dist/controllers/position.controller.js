@@ -1,0 +1,25 @@
+import prisma from '../config/db.js';
+import { catchAsync } from '../utils/catchAsync.js';
+export const createPosition = catchAsync(async (req, res) => {
+    const { title, description, departmentId, minSalary, maxSalary } = req.body;
+    const newPosition = await prisma.position.create({
+        data: { title, description, departmentId, minSalary, maxSalary }
+    });
+    res.status(201).json({ success: true, data: newPosition });
+});
+// GET ALL
+export const getPositions = catchAsync(async (req, res) => {
+    const positions = await prisma.position.findMany({
+        include: {
+            department: true,
+            _count: {
+                select: {
+                    employees: true
+                }
+            }
+        },
+        orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json({ success: true, data: positions });
+});
+//# sourceMappingURL=position.controller.js.map

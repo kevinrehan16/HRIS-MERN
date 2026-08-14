@@ -1,39 +1,23 @@
-// controllers/notificationController.ts
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { getNotification, markAsRead, markAsAllRead } from '../services/notification.service.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { sendResponse } from '../utils/sendResponse.js';
-import { AppError } from '@/utils/AppError.js';
+import { AppError } from '../utils/AppError.js';
 
-export const getNotifications = catchAsync(async (req: Request, res: Response) => {
-  // Kunin ang employeeId mula sa authenticated user (galing sa auth middleware mo)
-  const employeeId = req.user.id;
-  
-  // Optional query param: /notifications?unread=true
-  const unreadOnly = req.query.unread === 'true';
+type AuthenticatedRequest = { user: { id: number }; params: { id: string }; query: { unread?: string } };
 
-  const notifications = await getNotification(employeeId, unreadOnly);
-
-  sendResponse(res, 200, notifications, 'Notifications fetched successfully');
+export const getNotifications = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  const notifications = await getNotification(req.user.id, req.query.unread === 'true');
+  sendResponse(res, 200, notifications, 'Notifications retrieved.');
 });
 
-export const readNotification = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const employeeId = req.user.id; // Galing sa protect middleware mo
-
-  // Tawagin ang service
-  try {
-      await markAsRead(Number(id), employeeId);
-      sendResponse(res, 200, null, 'Notification marked as read');
-  } catch (error) {
-      // Kung nag-error (halimbawa, not found), dito mo i-handle
-      return next(new AppError('Notification not found or access denied', 404));
-  }
+export const readNotification = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  const updated = await markAsRead(Number(req.params.id), req.user.id);
+  if (!updated) throw new AppError('Notification not found or already read.', 404);
+  sendResponse(res, 200, null, 'Notification marked as read.');
 });
 
-export const readAllNotifications = catchAsync(async (req: Request, res: Response) => {
-  const employeeId = req.user.id;
-  await markAsAllRead(employeeId);
-  
-  sendResponse(res, 200, null, 'All notifications marked as read');
+export const readAllNotifications = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+  const result = await markAsAllRead(req.user.id);
+  sendResponse(res, 200, { updated: result.count }, 'Notifications marked as read.');
 });

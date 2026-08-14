@@ -74,4 +74,4 @@ ALTER TABLE `Document` ADD CONSTRAINT `Document_employeeId_fkey` FOREIGN KEY (`e
 
 -- RedefineIndex
 CREATE INDEX `LeaveRequest_employeeId_idx` ON `LeaveRequest`(`employeeId`);
-DROP INDEX `LeaveRequest_employeeId_fkey` ON `leaverequest`;
+-- DROP INDEX `LeaveRequest_employeeId_fkey` ON `leaverequest`;

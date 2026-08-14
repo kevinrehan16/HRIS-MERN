@@ -49,7 +49,7 @@ export const generateBatchPayroll = async (payrollPeriodId: number) => {
       // FIX: Kung ang DB mo ay nagse-save ng attendance kahit absent (e.g. status === 'ABSENT'),
       // siguraduhin nating hindi natin ito bibilangin na PRESENT.
       // Pwede mong palitan o alisin ang condition sa ibaba depende sa actual fields ng database mo.
-      if (att.status === 'ABSENT' || att.status === 'LEAVE') {
+      if (att.status === 'ABSENT') {
         return; 
       }
 

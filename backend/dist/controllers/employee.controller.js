@@ -1,0 +1,107 @@
+import * as EmployeeRepo from '../repositories/employee.repository.js';
+import { prisma } from '../config/db.js';
+import { hashPassword } from '../utils/password.util.js';
+import { sendResponse } from '../utils/sendResponse.js';
+import { catchAsync } from '../utils/catchAsync.js';
+import { AppError } from '../utils/AppError.js';
+// 1. REGISTER (Clean with Repository)
+// export const registerEmployee = catchAsync(async (req: Request, res: Response) => {
+//     const existing = await EmployeeRepo.findEmployeeByEmail(req.body.email);
+//     if (existing) {
+//         // Gumamit tayo ng return dito para hindi na tumuloy ang code
+//         throw new AppError("Email already registered in the system", 400);
+//     }
+//     const newEmployee = await EmployeeRepo.createEmployee(req.body);
+//     sendResponse(res, 201, newEmployee, "Employee Registered!");
+// });
+// 2. GET ALL (Enterprise standard - with relations)
+export const getAllEmployees = catchAsync(async (req, res) => {
+    // 1. Kunin ang pagination params (default: page 1, limit 10)
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const search = req.query.search;
+    const deptId = req.query.deptId;
+    // 2. Ipasa ang params sa Repo
+    const { employees, total, totalPages } = await EmployeeRepo.findAllEmployees(page, limit, search, deptId);
+    // 3. Ipadala ang data kasama ang pagination metadata
+    res.status(200).json({
+        success: true,
+        message: "Employees fetched successfully!",
+        data: employees,
+        pagination: {
+            total,
+            page,
+            limit,
+            totalPages
+        }
+    });
+});
+// 3. UPDATE (Using Repository)
+export const updateEmployeeProfile = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const employeeIdInt = Number(id);
+    // 1. Ihiwalay ang sensitive o kailangang i-transform na data
+    const { password, confirmPassword, birthDate, ...restOfData } = req.body;
+    // 2. I-prepare ang update payload
+    const updatePayload = {
+        ...restOfData,
+        // Siguraduhing Date object ang birthDate kung binago
+        ...(birthDate && { birthDate: new Date(birthDate) }),
+        // Siguraduhing Numbers ang IDs (Prisma safety)
+        departmentId: restOfData.departmentId ? Number(restOfData.departmentId) : undefined,
+        positionId: restOfData.positionId ? Number(restOfData.positionId) : undefined,
+    };
+    // 3. Password Logic (Optional: I-update lang kung may bagong password na nilagay)
+    if (password && password.trim() !== "") {
+        updatePayload.password = await hashPassword(password);
+    }
+    const existingEmployee = await EmployeeRepo.findEmployeeById(employeeIdInt);
+    if (!existingEmployee)
+        throw new AppError('Employee not found.', 404);
+    // 4. Execute Update via Repo
+    const updatedEmployee = await EmployeeRepo.updateEmployee(employeeIdInt, updatePayload);
+    // 5. Security: Huwag ibalik ang password sa frontend
+    const { password: _, ...safeData } = updatedEmployee;
+    sendResponse(res, 200, safeData, "Employee Profile Updated Successfully!");
+});
+// 4. DELETE (Using Repository)
+export const deleteEmployee = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const employeeId = Number(id);
+    const existingEmployee = await EmployeeRepo.findEmployeeById(employeeId);
+    if (!existingEmployee)
+        throw new AppError('Employee not found.', 404);
+    await EmployeeRepo.deleteEmployee(employeeId);
+    sendResponse(res, 200, null, "Employee Deleted Successfully!");
+});
+// 4. SAVE FACE
+export const enrollFace = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { faceDescriptor } = req.body;
+    if (!faceDescriptor)
+        throw new AppError("Face data is required", 400);
+    const existingEmployee = await EmployeeRepo.findEmployeeById(Number(id));
+    if (!existingEmployee)
+        throw new AppError('Employee not found.', 404);
+    const updatedEmployee = await prisma.employee.update({
+        where: { id: Number(id) },
+        data: { faceDescriptor },
+    });
+    sendResponse(res, 200, updatedEmployee, "Face enrolled successfully!");
+});
+// 4. FETCH FACE
+export const getEmployeesWithFace = catchAsync(async (req, res) => {
+    const employees = await prisma.employee.findMany({
+        where: {
+            faceDescriptor: { not: null }
+        },
+        select: {
+            id: true,
+            firstName: true, // Palitan ang 'name' nito
+            lastName: true, // Idagdag din ito
+            faceDescriptor: true
+        }
+    });
+    sendResponse(res, 200, employees, "Employees fetched successfully");
+});
+//# sourceMappingURL=employee.controller.js.map
